@@ -17,7 +17,7 @@ Install and Configure ROS Package
 	$ cd ~/catkin_workspace
 	$ catkin_make
 
-3) Edit launch/razor.launch to use correct USB port:
+3) Edit launch/razor-pub-and-display.launch to use correct USB port:
 
 	<param name="device" type="string" value="/dev/ttyUSB0" />
 
@@ -42,8 +42,16 @@ Install Arduino firmware
 3) Upload Arduino sketch
 
 
-Launch
+Launch 
 ------
+Publisher and 3D visualization:
 	
-	$ roslaunch razor_imu_9dof razor.launch
+	$ roslaunch razor_imu_9dof razor-pub-and-display.launch
 
+Publisher only (correct USB port if necessary):
+	
+	$ roslaunch razor_imu_9dof razor-pub.launch
+
+3D visualization only:
+	
+	$ roslaunch razor_imu_9dof razor-display.launch
