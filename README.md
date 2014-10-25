@@ -13,7 +13,7 @@ Install and Configure ROS Package
 2) Download code:
 
 	$ cd ~/catkin_workspace/src
-	$ git clone https://github.com/robotictang/razor_imu_9dof.git
+	$ git clone https://github.com/KristofRobot/razor_imu_9dof
 	$ cd ~/catkin_workspace
 	$ catkin_make
 
