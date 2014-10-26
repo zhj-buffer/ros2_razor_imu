@@ -13,18 +13,20 @@ Install and Configure ROS Package
 2) Download code:
 
 	$ cd ~/catkin_workspace/src
-	$ git clone https://github.com/robotictang/razor_imu_9dof.git
+	$ git clone https://github.com/KristofRobot/razor_imu_9dof.git
 	$ cd ~/catkin_workspace
 	$ catkin_make
 
-3) Edit launch/razor.launch to use correct USB port:
+3) Edit launch/razor*.launch to use correct USB port:
 
 	<param name="device" type="string" value="/dev/ttyUSB0" />
 
 
 Install Arduino firmware
 -------------------------
-1) Open src/Razor_AHRS/Razor_AHRS.ino in Arduino IDE
+1) Open src/Razor_AHRS/Razor_AHRS.ino in Arduino IDE. Note: this is a modified version
+of Peter Bartz' original Arduino code. Use this version - it emits linear acceleration and
+angular velocity data required by the Imu message
 
 2) Select your hardware here by uncommenting the right line in src/Razor_AHRS/Razor_AHRS.ino, e.g.
 
@@ -39,11 +41,15 @@ Install Arduino firmware
 #define HW__VERSION_CODE 10724 // SparkFun "9DOF Sensor Stick" version "SEN-10724" (HMC5883L magnetometer)
 </pre>
 
-3) Upload Arduino sketch
+3) Upload Arduino sketch to the Sparkfun 9DOF Razor IMU board
 
 
 Launch
 ------
 	
-	$ roslaunch razor_imu_9dof razor.launch
+	$ roslaunch razor_imu_9dof razor-pub-and-display.launch
 
+Calibrate
+------
+For best accuracy, follow the Razor_AHRS tutorial to calibrate the sensors
+https://github.com/ptrbrtz/razor-9dof-ahrs/wiki/Tutorial

@@ -27,6 +27,11 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+# TODO
+# - Clean up calibration values before pull request
+# - Rename output method
+# - Remove this.
+
 #import roslib; roslib.load_manifest('razor_imu_9dof')
 import rospy
 
@@ -42,21 +47,46 @@ from tf.transformations import quaternion_from_euler
 
 grad2rad = 3.141592/180.0
 
-rospy.init_node("node")
+rospy.init_node("razor_ahrs_node")
 pub = rospy.Publisher('imu', Imu)
 pubRaw = rospy.Publisher('imuRaw', RazorImu)
 
 imuMsg = Imu()
 imuRawMsg = RazorImu()
-imuMsg.orientation_covariance = [999999 , 0 , 0,
-0, 9999999, 0,
-0, 0, 999999]
-imuMsg.angular_velocity_covariance = [9999, 0 , 0,
-0 , 99999, 0,
-0 , 0 , 0.02]
-imuMsg.linear_acceleration_covariance = [0.2 , 0 , 0,
-0 , 0.2, 0,
-0 , 0 , 0.2]
+# Orientation covariance estimation:
+# observed orientation noise: 0.3 degrees in x, y, 0.6 degrees in z
+# Magnetometer linearity: 0.1% of full scale (+/- 2 gauss) => 4 milligauss
+# Earth's magnetic field strength is ~0.5 gauss, so magnetometer nonlinearity could
+# cause ~0.8% yaw error (4mgauss/0.5 gauss = 0.008) => 2.8 degrees, or 0.050 radians
+# i.e. variance in yaw: 0.0025
+# Accelerometer non-linearity: 0.2% of 4G => 0.008G. This could cause
+# static roll/pitch error of 0.8%, owing to gravity orientation sensing
+# error => 2.8 degrees, or 0.05 radians. i.e. variance in roll/pitch: 0.0025
+# Yaw & roll/pitch error could apply to x, y or z depending on orientation of sensor, 
+# so set all covariances the same.
+imuMsg.orientation_covariance = [
+0.0025 , 0 , 0,
+0, 0.0025, 0,
+0, 0, 0.0025
+]
+# Angular velocity covariance estimation:
+# Observed gyro noise: 4 counts => 0.28 degrees/sec
+# nonlinearity spec: 0.2% of full scale => 8 degrees/sec = 0.14 rad/sec
+# Choosing the larger (0.14) as std dev, variance = 0.14^2 ~= 0.02
+imuMsg.angular_velocity_covariance = [
+0.02, 0 , 0,
+0 , 0.02, 0,
+0 , 0 , 0.02
+]
+# linear acceleration covariance estimation:
+# observed acceleration noise: 5 counts => 20milli-G's ~= 0.2m/s^2
+# nonliniarity spec: 0.5% of full scale => 0.2m/s^2
+# Choosing 0.2 as std dev, variance = 0.2^2 = 0.04
+imuMsg.linear_acceleration_covariance = [
+0.04 , 0 , 0,
+0 , 0.04, 0,
+0 , 0 , 0.04
+]
 
 default_port='/dev/ttyUSB1'
 port = rospy.get_param('~device', default_port)
@@ -69,6 +99,7 @@ ser = serial.Serial(port=port,baudrate=57600, timeout=1)
 roll=0
 pitch=0
 yaw=0
+accel_factor = 9.806 / 256.0    # sensor reports accel as 256.0 = 1G (9.8m/s^2). Convert to m/s^2.
 rospy.loginfo("Giving the board 5 seconds to boot...")
 rospy.sleep(5) # Sleep for 5 seconds to wait for the board to boot then only write command.
 ser.write('#ox' + chr(13)) # To start display angle and sensor reading in text
@@ -81,7 +112,7 @@ for x in range(0, 200):
 rospy.loginfo("Publishing...")
 while 1:
     line = ser.readline()
-    line = line.replace("#YPRAMG=","")   # Delete "#YPRAMG="
+    line = line.replace("#YPRAG=","")   # Delete "#YPRAG="
     #f.write(line)                     # Write to the output log file
     words = string.split(line,",")    # Fields split
     if len(words) > 2:
@@ -91,13 +122,13 @@ while 1:
             roll = -float(words[2])*grad2rad
             
             # Publish message
-            imuMsg.linear_acceleration.x = float(words[3])
-            imuMsg.linear_acceleration.y = float(words[4])
-            imuMsg.linear_acceleration.z = float(words[5])
+            imuMsg.linear_acceleration.x = float(words[3]) * accel_factor
+            imuMsg.linear_acceleration.y = float(words[4]) * accel_factor
+            imuMsg.linear_acceleration.z = float(words[5]) * accel_factor
             
-            imuMsg.angular_velocity.x = float(words[9])
-            imuMsg.angular_velocity.y = float(words[10])
-            imuMsg.angular_velocity.z = float(words[11])
+            imuMsg.angular_velocity.x = float(words[6])
+            imuMsg.angular_velocity.y = float(words[7])
+            imuMsg.angular_velocity.z = float(words[8])
         except Exception as e:
             print e
             

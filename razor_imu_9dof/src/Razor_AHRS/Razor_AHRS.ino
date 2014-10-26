@@ -1,14 +1,15 @@
 /***************************************************************************************************************
-* Razor AHRS Firmware v1.4.1
+* Razor AHRS Firmware v1.4.2.1
 * 9 Degree of Measurement Attitude and Heading Reference System
 * for Sparkfun "9DOF Razor IMU" (SEN-10125 and SEN-10736)
 * and "9DOF Sensor Stick" (SEN-10183, 10321 and SEN-10724)
 *
 * Released under GNU GPL (General Public License) v3.0
+* Copyright (C) 2013 Peter Bartz [http://ptrbrtz.net]
 * Copyright (C) 2011-2012 Quality & Usability Lab, Deutsche Telekom Laboratories, TU Berlin
 *
-* Infos, updates, bug reports and feedback:
-*     http://dev.qu.tu-berlin.de/projects/sf-razor-9dof-ahrs
+* Infos, updates, bug reports, contributions and feedback:
+*     https://github.com/ptrbrtz/razor-9dof-ahrs
 *
 *
 * History:
@@ -41,6 +42,10 @@
 *     * v1.4.1
 *       * Added output modes to read raw and/or calibrated sensor data in text or binary format.
 *       * Added static magnetometer soft iron distortion compensation
+*     * v1.4.2
+*       * (No core firmware changes)
+*     * v1.4.2.1
+*       * New output mode to support ROS Imu use emits YPR + accel + rot. vel.
 *
 * TODOs:
 *   * Allow optional use of EEPROM for storing and reading calibration values.
@@ -96,7 +101,12 @@
               is 3x4 = 12 bytes long).
       "#ot" - Output angles in TEXT format (Output frames have form like "#YPR=-142.28,-5.38,33.52",
               followed by carriage return and line feed [\r\n]).
-      
+      "#ox" - Output angles and linear acceleration and rotational
+              velocity. Angles are in degrees, acceleration is
+              in units of 1.0 = 1/256 G (9.8/256 m/s^2). Rotational
+              velocity is in rad/s^2. (Output frames have form like
+              "#YPRAG=-142.28,-5.38,33.52,0.1,0.1,1.0,0.01,0.01,0.01",
+              followed by carriage return and line feed [\r\n]).
       // Sensor calibration
       "#oc" - Go to CALIBRATION output mode.
       "#on" - When in calibration mode, go on to calibrate NEXT sensor.
@@ -155,7 +165,7 @@
 /*****************************************************************/
 // Select your hardware here by uncommenting one line!
 //#define HW__VERSION_CODE 10125 // SparkFun "9DOF Razor IMU" version "SEN-10125" (HMC5843 magnetometer)
-//#define HW__VERSION_CODE 10736 // SparkFun "9DOF Razor IMU" version "SEN-10736" (HMC5883L magnetometer)
+#define HW__VERSION_CODE 10736 // SparkFun "9DOF Razor IMU" version "SEN-10736" (HMC5883L magnetometer)
 //#define HW__VERSION_CODE 10183 // SparkFun "9DOF Sensor Stick" version "SEN-10183" (HMC5843 magnetometer)
 //#define HW__VERSION_CODE 10321 // SparkFun "9DOF Sensor Stick" version "SEN-10321" (HMC5843 magnetometer)
 //#define HW__VERSION_CODE 10724 // SparkFun "9DOF Sensor Stick" version "SEN-10724" (HMC5883L magnetometer)
@@ -177,7 +187,7 @@
 #define OUTPUT__MODE_SENSORS_CALIB 2 // Outputs calibrated sensor values for all 9 axes
 #define OUTPUT__MODE_SENSORS_RAW 3 // Outputs raw (uncalibrated) sensor values for all 9 axes
 #define OUTPUT__MODE_SENSORS_BOTH 4 // Outputs calibrated AND raw sensor values for all 9 axes
-#define OUTPUT__MODE_CALIBRATE_BOTH_SENSORS_ANGLES 5
+#define OUTPUT__MODE_ANGLES_AG_SENSORS 5 // Outputs yaw/pitch/roll in degrees + linear accel + rot. vel
 // Output format definitions (do not change)
 #define OUTPUT__FORMAT_TEXT 0 // Outputs data as text
 #define OUTPUT__FORMAT_BINARY 1 // Outputs data as binary float
@@ -211,14 +221,14 @@ boolean output_errors = false;  // true or false
 // Put MIN/MAX and OFFSET readings for your board here!
 // Accelerometer
 // "accel x,y,z (min/max) = X_MIN/X_MAX  Y_MIN/Y_MAX  Z_MIN/Z_MAX"
-#define ACCEL_X_MIN ((float) -250)
-#define ACCEL_X_MAX ((float) 250)
-#define ACCEL_Y_MIN ((float) -250)
-#define ACCEL_Y_MAX ((float) 250)
-#define ACCEL_Z_MIN ((float) -250)
-#define ACCEL_Z_MAX ((float) 250)
+#define ACCEL_X_MIN ((float) -263)
+#define ACCEL_X_MAX ((float) 253)
+#define ACCEL_Y_MIN ((float) -252)
+#define ACCEL_Y_MAX ((float) 278)
+#define ACCEL_Z_MIN ((float) -255)
+#define ACCEL_Z_MAX ((float) 257)
 
-// Magnetometer (standard calibration)
+// Magnetometer (standard calibration mode)
 // "magn x,y,z (min/max) = X_MIN/X_MAX  Y_MIN/Y_MAX  Z_MIN/Z_MAX"
 #define MAGN_X_MIN ((float) -600)
 #define MAGN_X_MAX ((float) 600)
@@ -227,27 +237,27 @@ boolean output_errors = false;  // true or false
 #define MAGN_Z_MIN ((float) -600)
 #define MAGN_Z_MAX ((float) 600)
 
-// Magnetometer (extended calibration)
+// Magnetometer (extended calibration mode)
 // Uncommend to use extended magnetometer calibration (compensates hard & soft iron errors)
-//#define CALIBRATION__MAGN_USE_EXTENDED true
-//const float magn_ellipsoid_center[3] = {0, 0, 0};
-//const float magn_ellipsoid_transform[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+#define CALIBRATION__MAGN_USE_EXTENDED true
+const float magn_ellipsoid_center[3] = {107.569, -31.4713, -95.8536};
+const float magn_ellipsoid_transform[3][3] = {{0.972100, 0.0156685, -0.0248856}, {0.0156685, 0.943896, -0.00763168}, {-0.0248856, -0.00763168, 0.967934}};
 
 // Gyroscope
 // "gyro x,y,z (current/average) = .../OFFSET_X  .../OFFSET_Y  .../OFFSET_Z
-#define GYRO_AVERAGE_OFFSET_X ((float) 0.0)
-#define GYRO_AVERAGE_OFFSET_Y ((float) 0.0)
-#define GYRO_AVERAGE_OFFSET_Z ((float) 0.0)
+#define GYRO_AVERAGE_OFFSET_X ((float) -61.52)
+#define GYRO_AVERAGE_OFFSET_Y ((float) -72.82)
+#define GYRO_AVERAGE_OFFSET_Z ((float) 30.80)
 
 /*
 // Calibration example:
 
-// "accel x,y,z (min/max) = -278.00/270.00  -254.00/284.00  -294.00/235.00"
-#define ACCEL_X_MIN ((float) -278)
-#define ACCEL_X_MAX ((float) 270)
-#define ACCEL_Y_MIN ((float) -254)
-#define ACCEL_Y_MAX ((float) 284)
-#define ACCEL_Z_MIN ((float) -294)
+// "accel x,y,z (min/max) = -277.00/264.00  -256.00/278.00  -299.00/235.00"
+#define ACCEL_X_MIN ((float) -277)
+#define ACCEL_X_MAX ((float) 264)
+#define ACCEL_Y_MIN ((float) -256)
+#define ACCEL_Y_MAX ((float) 278)
+#define ACCEL_Z_MIN ((float) -299)
 #define ACCEL_Z_MAX ((float) 235)
 
 // "magn x,y,z (min/max) = -511.00/581.00  -516.00/568.00  -489.00/486.00"
@@ -268,10 +278,10 @@ const float magn_ellipsoid_transform[3][3] = {{0.902, -0.00354, 0.000636}, {-0.0
 //const float magn_ellipsoid_center[3] = {72.3360, 23.0954, 53.6261};
 //const float magn_ellipsoid_transform[3][3] = {{0.879685, 0.000540833, -0.0106054}, {0.000540833, 0.891086, -0.0130338}, {-0.0106054, -0.0130338, 0.997494}};
 
-//"gyro x,y,z (current/average) = -32.00/-34.82  102.00/100.41  -16.00/-16.38"
-#define GYRO_AVERAGE_OFFSET_X ((float) -34.82)
-#define GYRO_AVERAGE_OFFSET_Y ((float) 100.41)
-#define GYRO_AVERAGE_OFFSET_Z ((float) -16.38)
+//"gyro x,y,z (current/average) = -40.00/-42.05  98.00/96.20  -18.00/-18.36"
+#define GYRO_AVERAGE_OFFSET_X ((float) -42.05)
+#define GYRO_AVERAGE_OFFSET_Y ((float) 96.20)
+#define GYRO_AVERAGE_OFFSET_Z ((float) -18.36)
 */
 
 
@@ -299,7 +309,7 @@ const float magn_ellipsoid_transform[3][3] = {{0.902, -0.00354, 0.000636}, {-0.0
 // Check if hardware version code is defined
 #ifndef HW__VERSION_CODE
   // Generate compile error
-  #error YOU HAVE TO SELECT THE HARDWARE YOU ARE USING! See "HARDWARE OPTIONS" in "USER SETUP AREA" at top of Razor_AHRS.pde (or .ino)!
+  #error YOU HAVE TO SELECT THE HARDWARE YOU ARE USING! See "HARDWARE OPTIONS" in "USER SETUP AREA" at top of Razor_AHRS.ino!
 #endif
 
 #include <Wire.h>
@@ -561,7 +571,7 @@ void loop()
         }
         else if (output_param == 'x') // Go to _c_alibration mode for both sensor and angle comment: Tang
         {
-          output_mode = OUTPUT__MODE_CALIBRATE_BOTH_SENSORS_ANGLES;
+          output_mode = OUTPUT__MODE_ANGLES_AG_SENSORS;
           reset_calibration_session_flag = true;
         }
         else if (output_param == 's') // Output _s_ensor values
@@ -648,7 +658,7 @@ void loop()
       
       if (output_stream_on || output_single_on) output_angles();
     }
-    else if (output_mode == OUTPUT__MODE_CALIBRATE_BOTH_SENSORS_ANGLES)  // Output angles
+    else if (output_mode == OUTPUT__MODE_ANGLES_AG_SENSORS)  // Output angles + accel + rot. vel
     {
       // Apply sensor calibration
       compensate_sensor_errors();
