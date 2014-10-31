@@ -4,6 +4,7 @@ A standard ROS-style version of this documentation can be found on the ROS wiki 
 
 http://wiki.ros.org/razor_imu_9dof
 
+
 Install and Configure ROS Package
 ---------------------------------
 1) Install dependencies:
@@ -46,10 +47,20 @@ angular velocity data required by the Imu message
 
 Launch
 ------
+Publisher and 3D visualization:
 	
 	$ roslaunch razor_imu_9dof razor-pub-and-display.launch
 
+Publisher only:
+	
+	$ roslaunch razor_imu_9dof razor-pub.launch
+
+3D visualization only:
+	
+	$ roslaunch razor_imu_9dof razor-display.launch
+
+
 Calibrate
-------
+---------
 For best accuracy, follow the Razor_AHRS tutorial to calibrate the sensors
 https://github.com/ptrbrtz/razor-9dof-ahrs/wiki/Tutorial
