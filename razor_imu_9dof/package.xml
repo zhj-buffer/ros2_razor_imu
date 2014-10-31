@@ -1,10 +1,11 @@
 <package>
   <name>razor_imu_9dof</name>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
   <description>
      A driver for the razor board and a 3D display node.  
      The firmware of the razor board is updated and maintained at
-     https://dev.qu.tu-berlin.de/projects/sf-razor-9dof-ahrs/wiki/Tutorial
+     https://github.com/ptrbrtz/razor-9dof-ahrs and the tutorial is at
+     https://github.com/ptrbrtz/razor-9dof-ahrs/wiki/Tutorial
   </description>
   <maintainer email="krirobo@gmail.com">Kristof Robot</maintainer>
   <license>BSD</license>
