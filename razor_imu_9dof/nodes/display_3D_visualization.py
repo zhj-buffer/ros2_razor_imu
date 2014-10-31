@@ -34,7 +34,7 @@ import math
 from sensor_msgs.msg import Imu
 from tf.transformations import euler_from_quaternion
 
-grad2rad = math.pi/180.0
+rad2degrees = 180.0/math.pi
 
 # Main scene
 scene=display(title="9DOF Razor IMU Main Screen")
@@ -59,9 +59,9 @@ cil_pitch2 = cylinder(pos=(0.5,0.3,0),axis=(-0.2,0,0),radius=0.01,color=color.gr
 arrow_course = arrow(pos=(0.0,-0.4,0),color=color.cyan,axis=(0,0.2,0), shaftwidth=0.02, fixedwidth=1)
 
 #Roll,Pitch,Yaw labels
-label(pos=(-0.5,0.6,0),text="Roll",box=0,opacity=0)
-label(pos=(0.5,0.6,0),text="Pitch",box=0,opacity=0)
-label(pos=(0.0,0.02,0),text="Yaw",box=0,opacity=0)
+label(pos=(-0.5,0.6,0),text="Roll (degrees / radians)",box=0,opacity=0)
+label(pos=(0.5,0.6,0),text="Pitch (degrees / radians)",box=0,opacity=0)
+label(pos=(0.0,0.02,0),text="Yaw (degrees / radians)",box=0,opacity=0)
 label(pos=(0.0,-0.16,0),text="N",box=0,opacity=0,color=color.yellow)
 label(pos=(0.0,-0.64,0),text="S",box=0,opacity=0,color=color.yellow)
 label(pos=(-0.24,-0.4,0),text="W",box=0,opacity=0,color=color.yellow)
@@ -71,9 +71,9 @@ label(pos=(-0.18,-0.22,0),height=7,text="NW",box=0,color=color.yellow)
 label(pos=(0.18,-0.58,0),height=7,text="SE",box=0,color=color.yellow)
 label(pos=(-0.18,-0.58,0),height=7,text="SW",box=0,color=color.yellow)
 
-L1 = label(pos=(-0.5,0.52,0),text="-",box=0,opacity=0,height=12)
-L2 = label(pos=(0.5,0.52,0),text="-",box=0,opacity=0,height=12)
-L3 = label(pos=(0,-0.06,0),text="-",box=0,opacity=0,height=12)
+rollLabel = label(pos=(-0.5,0.52,0),text="-",box=0,opacity=0,height=12)
+pitchLabel = label(pos=(0.5,0.52,0),text="-",box=0,opacity=0,height=12)
+yawLabel = label(pos=(0,-0.06,0),text="-",box=0,opacity=0,height=12)
 
 # Main scene objects
 scene.select()
@@ -104,7 +104,7 @@ def processIMU_message(imuMsg):
       imuMsg.orientation.z,
       imuMsg.orientation.w)
     (roll,pitch,yaw) = euler_from_quaternion(quaternion)
-    
+   
     axis=(cos(pitch)*cos(yaw),-cos(pitch)*sin(yaw),sin(pitch)) 
     up=(sin(roll)*sin(yaw)+cos(roll)*sin(pitch)*cos(yaw),sin(roll)*cos(yaw)-cos(roll)*sin(pitch)*sin(yaw),-cos(roll)*cos(pitch))
     platform.axis=axis
@@ -122,9 +122,11 @@ def processIMU_message(imuMsg):
     cil_pitch2.axis=(-0.2*cos(pitch),-0.2*sin(pitch),0)
     #cil_course.axis=(0.2*sin(yaw),0.2*cos(yaw),0)
     arrow_course.axis=(0.2*sin(yaw),0.2*cos(yaw),0)
-    L1.text = str(roll)
-    L2.text = str(pitch)
-    L3.text = str(yaw)
+    
+    #display in degrees / radians
+    rollLabel.text = str(roll*rad2degrees) + " / " + str(roll)
+    pitchLabel.text = str(pitch*rad2degrees) + " / " + str(pitch)
+    yawLabel.text = str(yaw*rad2degrees) + " / " + str(yaw)
 
 
 sub = rospy.Subscriber('imu', Imu, processIMU_message)
