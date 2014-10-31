@@ -35,17 +35,14 @@ import math
 from time import time
 from sensor_msgs.msg import Imu
 from razor_imu_9dof.msg import RazorImu
-import tf
 from tf.transformations import quaternion_from_euler
 
-degrees2rad = 3.141592/180.0
+degrees2rad = math.pi/180.0
 
 rospy.init_node("razor_node")
 pub = rospy.Publisher('imu', Imu)
-pubRaw = rospy.Publisher('imuRaw', RazorImu)
 
 imuMsg = Imu()
-imuRawMsg = RazorImu()
 
 # Orientation covariance estimation:
 # Observed orientation noise: 0.3 degrees in x, y, 0.6 degrees in z
@@ -135,12 +132,6 @@ while not rospy.is_shutdown():
         imuMsg.header.stamp= rospy.Time.now()
         imuMsg.header.frame_id = 'base_imu_link'
         pub.publish(imuMsg)
-            
-        # Publish Raw message from Razor board
-        imuRawMsg.yaw = yaw
-        imuRawMsg.pitch = pitch
-        imuRawMsg.roll = roll
-        pubRaw.publish(imuRawMsg)
         
 ser.close
 #f.close

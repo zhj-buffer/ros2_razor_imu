@@ -29,16 +29,12 @@
 
 import rospy
 from visual import *
-import serial
-import string
 import math
 
-from time import time
 from sensor_msgs.msg import Imu
-from razor_imu_9dof.msg import RazorImu
+from tf.transformations import euler_from_quaternion
 
-grad2rad = 3.141592/180.0
-
+grad2rad = math.pi/180.0
 
 # Main scene
 scene=display(title="9DOF Razor IMU Main Screen")
@@ -97,14 +93,17 @@ plat_arrow = arrow(color=color.cyan,axis=(1,0,0), shaftwidth=0.06, fixedwidth=1)
 
 rospy.init_node("display_3D_visualization_node")
 
-def processIMU_message(rawMsg):
+def processIMU_message(imuMsg):
     roll=0
     pitch=0
     yaw=0
 
-    roll = rawMsg.roll
-    pitch = rawMsg.pitch
-    yaw = rawMsg.yaw
+    quaternion = (
+      imuMsg.orientation.x,
+      imuMsg.orientation.y,
+      imuMsg.orientation.z,
+      imuMsg.orientation.w)
+    (roll,pitch,yaw) = euler_from_quaternion(quaternion)
     
     axis=(cos(pitch)*cos(yaw),-cos(pitch)*sin(yaw),sin(pitch)) 
     up=(sin(roll)*sin(yaw)+cos(roll)*sin(pitch)*cos(yaw),sin(roll)*cos(yaw)-cos(roll)*sin(pitch)*sin(yaw),-cos(roll)*cos(pitch))
@@ -128,4 +127,4 @@ def processIMU_message(rawMsg):
     L3.text = str(yaw)
 
 
-sub = rospy.Subscriber('imuRaw', RazorImu, processIMU_message)
+sub = rospy.Subscriber('imu', Imu, processIMU_message)
