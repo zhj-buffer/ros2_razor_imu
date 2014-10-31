@@ -109,7 +109,9 @@ while not rospy.is_shutdown():
     words = string.split(line,",")    # Fields split
     if len(words) > 2:
         try:
+            #for IMU firmware z is down, for ROS z should be up (see REP 103)
             yaw = -float(words[0])*degrees2rad
+            #for IMU firmware y is right, for ROS y should be left (see REP 103)
             pitch = -float(words[1])*degrees2rad
             roll = float(words[2])*degrees2rad
             
