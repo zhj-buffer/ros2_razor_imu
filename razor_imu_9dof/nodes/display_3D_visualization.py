@@ -35,6 +35,7 @@ from sensor_msgs.msg import Imu
 from tf.transformations import euler_from_quaternion
 
 rad2degrees = 180.0/math.pi
+precision = 2 #round to this number of digits
 
 # Main scene
 scene=display(title="9DOF Razor IMU Main Screen")
@@ -74,6 +75,12 @@ label(pos=(-0.18,-0.58,0),height=7,text="SW",box=0,color=color.yellow)
 rollLabel = label(pos=(-0.5,0.52,0),text="-",box=0,opacity=0,height=12)
 pitchLabel = label(pos=(0.5,0.52,0),text="-",box=0,opacity=0,height=12)
 yawLabel = label(pos=(0,-0.06,0),text="-",box=0,opacity=0,height=12)
+
+#acceleration labels
+label(pos=(0,0.9,0),text="Linear Acceleration x / y / z (m/s^2)",box=0,opacity=0)
+label(pos=(0,-0.8,0),text="Angular Velocity x / y / z (rad/s)",box=0,opacity=0)
+linAccLabel = label(pos=(0,0.82,0),text="-",box=0,opacity=0,height=12)
+angVelLabel = label(pos=(0,-0.88,0),text="-",box=0,opacity=0,height=12)
 
 # Main scene objects
 scene.select()
@@ -124,9 +131,12 @@ def processIMU_message(imuMsg):
     arrow_course.axis=(0.2*sin(yaw),0.2*cos(yaw),0)
     
     #display in degrees / radians
-    rollLabel.text = str(roll*rad2degrees) + " / " + str(roll)
-    pitchLabel.text = str(pitch*rad2degrees) + " / " + str(pitch)
-    yawLabel.text = str(yaw*rad2degrees) + " / " + str(yaw)
+    rollLabel.text = str(round(roll*rad2degrees, precision)) + " / " + str(round(roll,precision))
+    pitchLabel.text = str(round(pitch*rad2degrees, precision)) + " / " + str(round(pitch, precision))
+    yawLabel.text = str(round(yaw*rad2degrees, precision)) + " / " + str(round(yaw, precision))
+
+    linAccLabel.text = str(round(imuMsg.linear_acceleration.x, precision)) + " / " + str(round(imuMsg.linear_acceleration.y, precision)) + " / " + str(round(imuMsg.linear_acceleration.z, precision))
+    angVelLabel.text = str(round(imuMsg.angular_velocity.x, precision)) + " / " + str(round(imuMsg.angular_velocity.y, precision)) + " / " + str(round(imuMsg.angular_velocity.z, precision))
 
 
 sub = rospy.Subscriber('imu', Imu, processIMU_message)
