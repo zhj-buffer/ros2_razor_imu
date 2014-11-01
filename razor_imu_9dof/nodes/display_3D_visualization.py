@@ -40,8 +40,8 @@ precision = 2 #round to this number of digits
 # Main scene
 scene=display(title="9DOF Razor IMU Main Screen")
 scene.range=(1.2,1.2,1.2)
-#scene.forward = (0,-1,-0.25)
 scene.forward = (1,0,-0.25)
+# Change reference axis (x,y,z) - z is up
 scene.up=(0,0,1)
 scene.width=500
 scene.height=500
@@ -49,14 +49,15 @@ scene.height=500
 # Second scene (Roll, Pitch, Yaw)
 scene2 = display(title='9DOF Razor IMU Roll, Pitch, Yaw',x=550, y=0, width=500, height=500,center=(0,0,0), background=(0,0,0))
 scene2.range=(1,1,1)
+# Reference axis (x,y,z) - z is up
+#scene2.up=(0,0,1)
 scene2.select()
 #Roll, Pitch, Yaw
+#Default reference, i.e. x runs right, y runs up, z runs backward (out of screen)
 cil_roll = cylinder(pos=(-0.5,0.3,0),axis=(0.2,0,0),radius=0.01,color=color.red)
 cil_roll2 = cylinder(pos=(-0.5,0.3,0),axis=(-0.2,0,0),radius=0.01,color=color.red)
-cil_pitch = cylinder(pos=(0.5,0.3,0),axis=(0.2,0,0),radius=0.01,color=color.green)
-cil_pitch2 = cylinder(pos=(0.5,0.3,0),axis=(-0.2,0,0),radius=0.01,color=color.green)
-#cil_course = cylinder(pos=(0.5,0.3,0),axis=(0,0.2,0),radius=0.01,color=color.blue)
-#cil_course2 = cylinder(pos=(-0.6,0.3,0),axis=(-0.2,0,0),radius=0.01,color=color.blue)
+cil_pitch = arrow(pos=(0.5,0.3,0),axis=(0,0,-0.4),shaftwidth=0.02,color=color.green)
+#cil_pitch2 = cylinder(pos=(0.5,0.3,0),axis=(0,0,0.2),radius=0.01,color=color.green)
 arrow_course = arrow(pos=(0.0,-0.4,0),color=color.cyan,axis=(0,0.2,0), shaftwidth=0.02, fixedwidth=1)
 
 #Roll,Pitch,Yaw labels
@@ -84,15 +85,17 @@ angVelLabel = label(pos=(0,-0.88,0),text="-",box=0,opacity=0,height=12)
 
 # Main scene objects
 scene.select()
-# Reference axis (x,y,z)
+# Reference axis (x,y,z) - using ROS conventions (REP 103) - z is up, y left (west, 90 deg), x is forward (north, 0 deg)
+# In visual, z runs up, x runs forward, y runs left (see scene.up command earlier) 
+# So everything is good
 arrow(color=color.green,axis=(1,0,0), shaftwidth=0.02, fixedwidth=1)
-arrow(color=color.green,axis=(0,-1,0), shaftwidth=0.02 , fixedwidth=1)
-arrow(color=color.green,axis=(0,0,-1), shaftwidth=0.02, fixedwidth=1)
+arrow(color=color.green,axis=(0,1,0), shaftwidth=0.02 , fixedwidth=1)
+arrow(color=color.green,axis=(0,0,1), shaftwidth=0.02, fixedwidth=1)
 # labels
 label(pos=(0,0,0.8),text="9DOF Razor IMU test",box=0,opacity=0)
 label(pos=(1,0,0),text="X",box=0,opacity=0)
-label(pos=(0,-1,0),text="Y",box=0,opacity=0)
-label(pos=(0,0,-1),text="Z",box=0,opacity=0)
+label(pos=(0,1,0),text="Y",box=0,opacity=0)
+label(pos=(0,0,1),text="Z",box=0,opacity=0)
 # IMU object
 platform = box(length=1, height=0.05, width=1, color=color.red)
 p_line = box(length=1,height=0.08,width=0.1,color=color.yellow)
@@ -111,8 +114,8 @@ def processIMU_message(imuMsg):
       imuMsg.orientation.z,
       imuMsg.orientation.w)
     (roll,pitch,yaw) = euler_from_quaternion(quaternion)
-   
-    axis=(cos(pitch)*cos(yaw),-cos(pitch)*sin(yaw),sin(pitch)) 
+
+    axis=(-cos(pitch)*cos(yaw),-cos(pitch)*sin(yaw),sin(pitch)) 
     up=(sin(roll)*sin(yaw)+cos(roll)*sin(pitch)*cos(yaw),sin(roll)*cos(yaw)-cos(roll)*sin(pitch)*sin(yaw),-cos(roll)*cos(pitch))
     platform.axis=axis
     platform.up=up
@@ -123,12 +126,11 @@ def processIMU_message(imuMsg):
     plat_arrow.length=-0.8
     p_line.axis=axis
     p_line.up=up
-    cil_roll.axis=(0.2*cos(roll),0.2*sin(roll),0)
-    cil_roll2.axis=(-0.2*cos(roll),-0.2*sin(roll),0)
-    cil_pitch.axis=(0.2*cos(pitch),0.2*sin(pitch),0)
-    cil_pitch2.axis=(-0.2*cos(pitch),-0.2*sin(pitch),0)
-    #cil_course.axis=(0.2*sin(yaw),0.2*cos(yaw),0)
-    arrow_course.axis=(0.2*sin(yaw),0.2*cos(yaw),0)
+    cil_roll.axis=(-0.2*cos(roll),0.2*sin(roll),0)
+    cil_roll2.axis=(0.2*cos(roll),-0.2*sin(roll),0)
+    cil_pitch.axis=(0,-0.4*sin(pitch),-0.4*cos(pitch))
+    #cil_pitch2.axis=(0,0.2*sin(pitch),0.2*cos(pitch))
+    arrow_course.axis=(-0.2*sin(yaw),0.2*cos(yaw),0)
     
     #display in degrees / radians
     rollLabel.text = str(round(roll*rad2degrees, precision)) + " / " + str(round(roll,precision))
