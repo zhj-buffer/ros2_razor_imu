@@ -34,7 +34,6 @@ import math
 
 from time import time
 from sensor_msgs.msg import Imu
-from razor_imu_9dof.msg import RazorImu
 from tf.transformations import quaternion_from_euler
 
 degrees2rad = math.pi/180.0
