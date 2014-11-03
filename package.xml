@@ -2,20 +2,20 @@
   <name>razor_imu_9dof</name>
   <version>1.0.3</version>
   <description>
-     A driver for the razor board and a 3D display node.  
+     A driver and 3D display node for the Razor IMU 9DOF.  
      The firmware of the razor board is updated and maintained at
-     https://github.com/ptrbrtz/razor-9dof-ahrs and the tutorial is at
-     https://github.com/ptrbrtz/razor-9dof-ahrs/wiki/Tutorial
+     https://github.com/ptrbrtz/razor-9dof-ahrs.
   </description>
 
   <maintainer email="krirobo@gmail.com">Kristof Robot</maintainer>
 
   <license>BSD</license>
 
-  <author>Kristof Robot</author>
   <author>Tang Tiong Yew</author>
+  <author>Kristof Robot</author>
+  <author>Paul Bouchier</author>
 
-  <url>http://ros.org/wiki/razor_imu_9dof</url>
+  <url type="website">http://ros.org/wiki/razor_imu_9dof</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
