@@ -7,9 +7,12 @@
      https://github.com/ptrbrtz/razor-9dof-ahrs and the tutorial is at
      https://github.com/ptrbrtz/razor-9dof-ahrs/wiki/Tutorial
   </description>
+
   <maintainer email="krirobo@gmail.com">Kristof Robot</maintainer>
+
   <license>BSD</license>
 
+  <author>Kristof Robot</author>
   <author>Tang Tiong Yew</author>
 
   <url>http://ros.org/wiki/razor_imu_9dof</url>
