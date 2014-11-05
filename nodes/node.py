@@ -108,19 +108,23 @@ while not rospy.is_shutdown():
     words = string.split(line,",")    # Fields split
     if len(words) > 2:
         try:
-            #for IMU firmware z is down, for ROS z should be up (see REP 103)
+            #in AHRS firmware z axis points down, in ROS z axis points up (see REP 103)
             yaw = -float(words[0])*degrees2rad
-            #for IMU firmware y is right, for ROS y should be left (see REP 103)
+            #in AHRS firmware y axis points right, in ROS y axis points left (see REP 103)
             pitch = -float(words[1])*degrees2rad
             roll = float(words[2])*degrees2rad
             
             # Publish message
-            imuMsg.linear_acceleration.x = float(words[3]) * accel_factor
+            # AHRS firmware accelerations are negated
+            # This means y and z are correct for ROS, but x needs reversing
+            imuMsg.linear_acceleration.x = -float(words[3]) * accel_factor
             imuMsg.linear_acceleration.y = float(words[4]) * accel_factor
             imuMsg.linear_acceleration.z = float(words[5]) * accel_factor
-            
+
             imuMsg.angular_velocity.x = float(words[6])
+            #in AHRS firmware y axis points right, in ROS y axis points left (see REP 103)
             imuMsg.angular_velocity.y = -float(words[7])
+            #in AHRS firmware z axis points down, in ROS z axis points up (see REP 103) 
             imuMsg.angular_velocity.z = -float(words[8])
         except Exception as e:
             print e
