@@ -39,7 +39,8 @@ from tf.transformations import quaternion_from_euler
 degrees2rad = math.pi/180.0
 
 rospy.init_node("razor_node")
-pub = rospy.Publisher('imu', Imu)
+#We only care about the most recent measurement, i.e. queue_size=1
+pub = rospy.Publisher('imu', Imu, queue_size=1)
 
 imuMsg = Imu()
 
