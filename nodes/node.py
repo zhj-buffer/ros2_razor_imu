@@ -31,8 +31,9 @@ import rospy
 import serial
 import string
 import math
+import sys
 
-from time import time
+#from time import time
 from sensor_msgs.msg import Imu
 from tf.transformations import quaternion_from_euler
 
@@ -84,7 +85,13 @@ default_port='/dev/ttyUSB1'
 port = rospy.get_param('~device', default_port)
 # Check your COM port and baud rate
 rospy.loginfo("Opening %s...", port)
-ser = serial.Serial(port=port,baudrate=57600, timeout=1)
+
+try:
+    ser = serial.Serial(port=port, baudrate=57600, timeout=1)
+except serial.serialutil.SerialException:
+    rospy.logerr("IMU not found at port "+port + ". Did you specify the correct port in the launch file?")
+    #exit
+    sys.exit(0)
 
 #f = open("Serial"+str(time())+".txt", 'w')
 
