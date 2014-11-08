@@ -81,7 +81,7 @@ imuMsg.linear_acceleration_covariance = [
 0 , 0 , 0.04
 ]
 
-default_port='/dev/ttyUSB1'
+default_port='/dev/ttyUSB0'
 port = rospy.get_param('~device', default_port)
 # Check your COM port and baud rate
 rospy.loginfo("Opening %s...", port)
