@@ -15,10 +15,10 @@ Install and Configure ROS Package
 
 	$ cd ~/catkin_workspace/src
 	$ git clone https://github.com/KristofRobot/razor_imu_9dof.git
-	$ cd ~/catkin_workspace
+	$ cd ..
 	$ catkin_make
 
-3) Edit launch/razor*.launch to use correct USB port:
+3) Edit ``launch/razor*.launch`` to use correct USB port:
 
 	<param name="device" type="string" value="/dev/ttyUSB0" />
 
