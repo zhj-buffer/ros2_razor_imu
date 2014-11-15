@@ -2,8 +2,9 @@
 Changelog for package razor_imu_9dof
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1.0.4 (forthcoming)
+1.0.4 (15-11-2014)
 ------------------
+* Adding press 'a' to align feature
 * Moving magnetometer calibration sketches under dedicated ``magnetometer_calibration`` directory
 * Adding magnetometer calibration sketches for Processing and Matlab (Paul Bouchier)
 * Setting default USB port to /dev/ttyUSB0 in all files
