@@ -66,4 +66,4 @@ For best accuracy, follow the tutorial to calibrate the sensors:
 
 http://wiki.ros.org/razor_imu_9dof
 
-A copy of Peter Bartz's magnetometer calibration scripts is provided in the ``magnetometer_calibration`` directory.
+A copy of Peter Bartz's magnetometer calibration scripts from https://github.com/ptrbrtz/razor-9dof-ahrs is provided in the ``magnetometer_calibration`` directory.
