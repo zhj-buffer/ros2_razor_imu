@@ -1,6 +1,6 @@
 Official ROS Documentation
 --------------------------
-A standard ROS-style version of this documentation can be found on the ROS wiki at:
+A much more extensive and standard ROS-style version of this documentation can be found on the ROS wiki at:
 
 http://wiki.ros.org/razor_imu_9dof
 
@@ -62,5 +62,8 @@ Publisher only:
 
 Calibrate
 ---------
-For best accuracy, follow the Razor_AHRS tutorial to calibrate the sensors
-https://github.com/ptrbrtz/razor-9dof-ahrs/wiki/Tutorial
+For best accuracy, follow the tutorial to calibrate the sensors:
+
+http://wiki.ros.org/razor_imu_9dof
+
+A copy of Peter Bartz's magnetometer calibration scripts is provided in the ``magnetometer_calibration`` directory.
