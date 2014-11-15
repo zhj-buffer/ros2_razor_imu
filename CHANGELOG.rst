@@ -2,6 +2,12 @@
 Changelog for package razor_imu_9dof
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.0.5 (15-11-2014)
+------------------
+* Moving scripts from nodes to scripts dir
+* Installing files in ``src`` and ``magnetometer_calibration``
+* Major cleanup of package.xml and CMakeLists.txt
+
 1.0.4 (15-11-2014)
 ------------------
 * Adding press 'a' to align feature
