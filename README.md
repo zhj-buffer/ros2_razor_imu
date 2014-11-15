@@ -25,11 +25,11 @@ Install and Configure ROS Package
 
 Install Arduino firmware
 -------------------------
-1) Open src/Razor_AHRS/Razor_AHRS.ino in Arduino IDE. Note: this is a modified version
-of Peter Bartz' original Arduino code. Use this version - it emits linear acceleration and
-angular velocity data required by the Imu message
+1) Open ``src/Razor_AHRS/Razor_AHRS.ino`` in Arduino IDE. Note: this is a modified version
+of Peter Bartz' original Arduino code (see https://github.com/ptrbrtz/razor-9dof-ahrs). 
+Use this version - it emits linear acceleration and angular velocity data required by the ROS Imu message
 
-2) Select your hardware here by uncommenting the right line in src/Razor_AHRS/Razor_AHRS.ino, e.g.
+2) Select your hardware here by uncommenting the right line in ``src/Razor_AHRS/Razor_AHRS.ino``, e.g.
 
 <pre>
 // HARDWARE OPTIONS
