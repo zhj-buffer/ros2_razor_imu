@@ -1,6 +1,6 @@
 Official ROS Documentation
 --------------------------
-A standard ROS-style version of this documentation can be found on the ROS wiki at:
+A much more extensive and standard ROS-style version of this documentation can be found on the ROS wiki at:
 
 http://wiki.ros.org/razor_imu_9dof
 
@@ -15,21 +15,21 @@ Install and Configure ROS Package
 
 	$ cd ~/catkin_workspace/src
 	$ git clone https://github.com/KristofRobot/razor_imu_9dof.git
-	$ cd ~/catkin_workspace
+	$ cd ..
 	$ catkin_make
 
-3) Edit launch/razor*.launch to use correct USB port:
+3) Edit ``launch/razor*.launch`` to use correct USB port:
 
 	<param name="device" type="string" value="/dev/ttyUSB0" />
 
 
 Install Arduino firmware
 -------------------------
-1) Open src/Razor_AHRS/Razor_AHRS.ino in Arduino IDE. Note: this is a modified version
-of Peter Bartz' original Arduino code. Use this version - it emits linear acceleration and
-angular velocity data required by the Imu message
+1) Open ``src/Razor_AHRS/Razor_AHRS.ino`` in Arduino IDE. Note: this is a modified version
+of Peter Bartz' original Arduino code (see https://github.com/ptrbrtz/razor-9dof-ahrs). 
+Use this version - it emits linear acceleration and angular velocity data required by the ROS Imu message
 
-2) Select your hardware here by uncommenting the right line in src/Razor_AHRS/Razor_AHRS.ino, e.g.
+2) Select your hardware here by uncommenting the right line in ``src/Razor_AHRS/Razor_AHRS.ino``, e.g.
 
 <pre>
 // HARDWARE OPTIONS
@@ -62,5 +62,8 @@ Publisher only:
 
 Calibrate
 ---------
-For best accuracy, follow the Razor_AHRS tutorial to calibrate the sensors
-https://github.com/ptrbrtz/razor-9dof-ahrs/wiki/Tutorial
+For best accuracy, follow the tutorial to calibrate the sensors:
+
+http://wiki.ros.org/razor_imu_9dof
+
+A copy of Peter Bartz's magnetometer calibration scripts from https://github.com/ptrbrtz/razor-9dof-ahrs is provided in the ``magnetometer_calibration`` directory.
