@@ -247,8 +247,8 @@ float MAGN_Z_MIN = -600;
 float MAGN_Z_MAX = 600;
 
 // Magnetometer (extended calibration mode)
-// Uncomment to use extended magnetometer calibration (compensates hard & soft iron errors)
-boolean CALIBRATION__MAGN_USE_EXTENDED = true;
+// Set to true to use extended magnetometer calibration (compensates hard & soft iron errors)
+boolean CALIBRATION__MAGN_USE_EXTENDED = false;
 float magn_ellipsoid_center[3] = {0, 0, 0};
 float magn_ellipsoid_transform[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 
@@ -428,26 +428,26 @@ void reset_sensor_fusion() {
 
 // Apply calibration to raw sensor readings
 void compensate_sensor_errors() {
-    // Compensate accelerometer error
-    accel[0] = (accel[0] - ACCEL_X_OFFSET) * ACCEL_X_SCALE;
-    accel[1] = (accel[1] - ACCEL_Y_OFFSET) * ACCEL_Y_SCALE;
-    accel[2] = (accel[2] - ACCEL_Z_OFFSET) * ACCEL_Z_SCALE;
-
-    // Compensate magnetometer error
-    if (CALIBRATION__MAGN_USE_EXTENDED){
-      for (int i = 0; i < 3; i++)
-        magnetom_tmp[i] = magnetom[i] - magn_ellipsoid_center[i];
-      Matrix_Vector_Multiply(magn_ellipsoid_transform, magnetom_tmp, magnetom);
-    }else{
+  // Compensate accelerometer error
+  accel[0] = (accel[0] - ACCEL_X_OFFSET) * ACCEL_X_SCALE;
+  accel[1] = (accel[1] - ACCEL_Y_OFFSET) * ACCEL_Y_SCALE;
+  accel[2] = (accel[2] - ACCEL_Z_OFFSET) * ACCEL_Z_SCALE;
+  
+  // Compensate magnetometer error
+  if (CALIBRATION__MAGN_USE_EXTENDED){
+    for (int i = 0; i < 3; i++)
+      magnetom_tmp[i] = magnetom[i] - magn_ellipsoid_center[i];
+    Matrix_Vector_Multiply(magn_ellipsoid_transform, magnetom_tmp, magnetom);
+  }else{
     magnetom[0] = (magnetom[0] - MAGN_X_OFFSET) * MAGN_X_SCALE;
     magnetom[1] = (magnetom[1] - MAGN_Y_OFFSET) * MAGN_Y_SCALE;
     magnetom[2] = (magnetom[2] - MAGN_Z_OFFSET) * MAGN_Z_SCALE;
-    }
-
-    // Compensate gyroscope error
-    gyro[0] -= GYRO_AVERAGE_OFFSET_X;
-    gyro[1] -= GYRO_AVERAGE_OFFSET_Y;
-    gyro[2] -= GYRO_AVERAGE_OFFSET_Z;
+  }
+  
+  // Compensate gyroscope error
+  gyro[0] -= GYRO_AVERAGE_OFFSET_X;
+  gyro[1] -= GYRO_AVERAGE_OFFSET_Y;
+  gyro[2] -= GYRO_AVERAGE_OFFSET_Z;
 }
 
 // Reset calibration session if reset_calibration_session_flag is set
