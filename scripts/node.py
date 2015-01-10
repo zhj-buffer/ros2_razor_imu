@@ -82,10 +82,42 @@ imuMsg.linear_acceleration_covariance = [
 ]
 
 default_port='/dev/ttyUSB0'
-port = rospy.get_param('~device', default_port)
+port = rospy.get_param('~port', default_port)
+
+#read calibration parameters
+port = rospy.get_param('~port', default_port)
+
+#accelerometer
+accel_x_min = rospy.get_param('~accel_x_min', -250.0)
+accel_x_max = rospy.get_param('~accel_x_max', 250.0)
+accel_y_min = rospy.get_param('~accel_y_min', -250.0)
+accel_y_max = rospy.get_param('~accel_y_max', 250.0)
+accel_z_min = rospy.get_param('~accel_z_min', -250.0)
+accel_z_max = rospy.get_param('~accel_z_max', 250.0)
+
+# magnetometer
+magn_x_min = rospy.get_param('~magn_x_min', -600.0)
+magn_x_max = rospy.get_param('~magn_x_max', 600.0)
+magn_y_min = rospy.get_param('~magn_y_min', -600.0)
+magn_y_max = rospy.get_param('~magn_y_max', 600.0)
+magn_z_min = rospy.get_param('~magn_z_min', -600.0)
+magn_z_max = rospy.get_param('~magn_z_max', 600.0)
+calibration_magn_use_extended = rospy.get_param('~calibration_magn_use_extended', True)
+magn_ellipsoid_center = rospy.get_param('~magn_ellipsoid_center', [0, 0, 0])
+magn_ellipsoid_transform = rospy.get_param('~magn_ellipsoid_transform', [[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+
+# gyroscope
+gyro_average_offset_x = rospy.get_param('~gyro_average_offset_x', 0.0)
+gyro_average_offset_y = rospy.get_param('~gyro_average_offset_y', 0.0)
+gyro_average_offset_z = rospy.get_param('~gyro_average_offset_z', 0.0)
+
+#rospy.loginfo("%f %f %f %f %f %f", accel_x_min, accel_x_max, accel_y_min, accel_y_max, accel_z_min, accel_z_max)
+#rospy.loginfo("%f %f %f %f %f %f", magn_x_min, magn_x_max, magn_y_min, magn_y_max, magn_z_min, magn_z_max)
+#rospy.loginfo("%s %s %s", str(calibration_magn_use_extended), str(magn_ellipsoid_center), str(magn_ellipsoid_transform[0][0]))
+#rospy.loginfo("%f %f %f", gyro_average_offset_x, gyro_average_offset_y, gyro_average_offset_z)
+
 # Check your COM port and baud rate
 rospy.loginfo("Opening %s...", port)
-
 try:
     ser = serial.Serial(port=port, baudrate=57600, timeout=1)
 except serial.serialutil.SerialException:
@@ -100,8 +132,48 @@ pitch=0
 yaw=0
 accel_factor = 9.806 / 256.0    # sensor reports accel as 256.0 = 1G (9.8m/s^2). Convert to m/s^2.
 rospy.loginfo("Giving the razor IMU board 5 seconds to boot...")
-rospy.sleep(5) # Sleep for 5 seconds to wait for the board to boot then only write command.
+rospy.sleep(5) # Sleep for 5 seconds to wait for the board to boot
+
+### configure board ###
+#set output mode
 ser.write('#ox' + chr(13)) # To start display angle and sensor reading in text
+
+#set calibration values
+ser.write('#caxm' + str(accel_x_min) + chr(13))
+ser.write('#caxM' + str(accel_x_max) + chr(13))
+ser.write('#caym' + str(accel_y_min) + chr(13))
+ser.write('#cayM' + str(accel_y_max) + chr(13))
+ser.write('#cazm' + str(accel_z_min) + chr(13))
+ser.write('#cazM' + str(accel_z_max) + chr(13))
+
+if (not calibration_magn_use_extended):
+    ser.write('#cmxm' + str(magn_x_min) + chr(13))
+    ser.write('#cmxM' + str(magn_x_max) + chr(13))
+    ser.write('#cmym' + str(magn_y_min) + chr(13))
+    ser.write('#cmyM' + str(magn_y_max) + chr(13))
+    ser.write('#cmzm' + str(magn_z_min) + chr(13))
+    ser.write('#cmzM' + str(magn_z_max) + chr(13))
+else:
+    ser.write('#ccx' + str(magn_ellipsoid_center[0]) + chr(13))
+    ser.write('#ccy' + str(magn_ellipsoid_center[1]) + chr(13))
+    ser.write('#ccz' + str(magn_ellipsoid_center[2]) + chr(13))
+    ser.write('#ctxX' + str(magn_ellipsoid_transform[0][0]) + chr(13))
+    ser.write('#ctxY' + str(magn_ellipsoid_transform[0][1]) + chr(13))
+    ser.write('#ctxZ' + str(magn_ellipsoid_transform[0][2]) + chr(13))
+    ser.write('#ctyX' + str(magn_ellipsoid_transform[1][0]) + chr(13))
+    ser.write('#ctyY' + str(magn_ellipsoid_transform[1][1]) + chr(13))
+    ser.write('#ctyZ' + str(magn_ellipsoid_transform[1][2]) + chr(13))
+    ser.write('#ctzX' + str(magn_ellipsoid_transform[2][0]) + chr(13))
+    ser.write('#ctzY' + str(magn_ellipsoid_transform[2][1]) + chr(13))
+    ser.write('#ctzZ' + str(magn_ellipsoid_transform[2][2]) + chr(13))
+
+ser.write('#cgx' + str(gyro_average_offset_x) + chr(13))
+ser.write('#cgy' + str(gyro_average_offset_y) + chr(13))
+ser.write('#cgz' + str(gyro_average_offset_z) + chr(13))
+
+#start datastream
+ser.write('#o1' + chr(13))
+
 #automatic flush - NOT WORKING
 #ser.flushInput()  #discard old input, still in invalid format
 #flush manually, as above command is not working - it breaks the serial connection

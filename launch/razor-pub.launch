@@ -1,6 +1,5 @@
 <launch>
-  <arg name="device_port" default="/dev/ttyUSB0" />
   <node pkg="razor_imu_9dof" type="node.py" name="node" output="screen">
-        <param name="device" type="string" value="$(arg device_port)" />
+    <rosparam file="$(find razor_imu_9dof)/config/my_razor.yaml" command="load"/>
   </node>
 </launch>
