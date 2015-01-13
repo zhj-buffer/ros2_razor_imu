@@ -135,9 +135,19 @@ rospy.loginfo("Giving the razor IMU board 5 seconds to boot...")
 rospy.sleep(5) # Sleep for 5 seconds to wait for the board to boot
 
 ### configure board ###
+#stop datastream
+ser.write('#o0' + chr(13))
+
+#discard old input
+#automatic flush - NOT WORKING
+#ser.flushInput()  #discard old input, still in invalid format
+#flush manually, as above command is not working
+discard = ser.readlines() 
+
 #set output mode
 ser.write('#ox' + chr(13)) # To start display angle and sensor reading in text
 
+rospy.loginfo("Writing calibration values to razor IMU board...")
 #set calibration values
 ser.write('#caxm' + str(accel_x_min) + chr(13))
 ser.write('#caxM' + str(accel_x_max) + chr(13))
@@ -170,6 +180,13 @@ else:
 ser.write('#cgx' + str(gyro_average_offset_x) + chr(13))
 ser.write('#cgy' + str(gyro_average_offset_y) + chr(13))
 ser.write('#cgz' + str(gyro_average_offset_z) + chr(13))
+
+#print calibration values for verification by user
+ser.flushInput()
+ser.write('#p' + chr(13))
+rospy.loginfo("Printing set calibration values:")
+calib_data = ser.readlines()
+rospy.loginfo(calib_data)
 
 #start datastream
 ser.write('#o1' + chr(13))
