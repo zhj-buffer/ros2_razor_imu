@@ -184,9 +184,11 @@ ser.write('#cgz' + str(gyro_average_offset_z) + chr(13))
 #print calibration values for verification by user
 ser.flushInput()
 ser.write('#p' + chr(13))
-rospy.loginfo("Printing set calibration values:")
 calib_data = ser.readlines()
-rospy.loginfo(calib_data)
+calib_data_print = "Printing set calibration values:\r\n"
+for line in calib_data:
+    calib_data_print += line
+rospy.loginfo(calib_data_print)
 
 #start datastream
 ser.write('#o1' + chr(13))

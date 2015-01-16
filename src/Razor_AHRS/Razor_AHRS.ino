@@ -611,38 +611,43 @@ void loop()
       }
       else if (command == 'p') // Set _p_rint calibration values
       {
-         Serial.println("#CAL:"); 
-         Serial.print(ACCEL_X_MIN);Serial.print(",");
-         Serial.print(ACCEL_X_MAX);Serial.print(",");
-         Serial.print(ACCEL_Y_MIN);Serial.print(",");
-         Serial.print(ACCEL_Y_MAX);Serial.print(",");
-         Serial.print(ACCEL_Z_MIN);Serial.print(",");
-         Serial.print(ACCEL_Z_MAX);
+         Serial.print("ACCEL_X_MIN:");Serial.println(ACCEL_X_MIN);
+         Serial.print("ACCEL_X_MAX:");Serial.println(ACCEL_X_MAX);
+         Serial.print("ACCEL_Y_MIN:");Serial.println(ACCEL_Y_MIN);
+         Serial.print("ACCEL_Y_MAX:");Serial.println(ACCEL_Y_MAX);
+         Serial.print("ACCEL_Z_MIN:");Serial.println(ACCEL_Z_MIN);
+         Serial.print("ACCEL_Z_MAX:");Serial.println(ACCEL_Z_MAX);
          Serial.println(""); 
-         Serial.print(MAGN_X_MIN);Serial.print(",");
-         Serial.print(MAGN_X_MAX);Serial.print(",");
-         Serial.print(MAGN_Y_MIN);Serial.print(",");
-         Serial.print(MAGN_Y_MAX);Serial.print(",");
-         Serial.print(MAGN_Z_MIN);Serial.print(",");
-         Serial.print(MAGN_Z_MAX);
+         Serial.print("MAGN_X_MIN:");Serial.println(MAGN_X_MIN);
+         Serial.print("MAGN_X_MAX:");Serial.println(MAGN_X_MAX);
+         Serial.print("MAGN_Y_MIN:");Serial.println(MAGN_Y_MIN);
+         Serial.print("MAGN_Y_MAX:");Serial.println(MAGN_Y_MAX);
+         Serial.print("MAGN_Z_MIN:");Serial.println(MAGN_Z_MIN);
+         Serial.print("MAGN_Z_MAX:");Serial.println(MAGN_Z_MAX);
          Serial.println("");
+         Serial.print("MAGN_USE_EXTENDED:");
          if (CALIBRATION__MAGN_USE_EXTENDED) 
-           Serial.print("True,");
+           Serial.println("true");
          else
-           Serial.print("False,");
-         Serial.print(magn_ellipsoid_center[0],4);Serial.print(",");
+           Serial.println("false");
+         Serial.print("magn_ellipsoid_center:[");Serial.print(magn_ellipsoid_center[0],4);Serial.print(",");
          Serial.print(magn_ellipsoid_center[1],4);Serial.print(",");
-         Serial.print(magn_ellipsoid_center[2],4);Serial.print(",");
+         Serial.print(magn_ellipsoid_center[2],4);Serial.println("]");
+         Serial.print("magn_ellipsoid_transform:[");
          for(int i = 0; i < 3; i++){
+           Serial.print("[");
            for(int j = 0; j < 3; j++){
-             Serial.print(magn_ellipsoid_transform[i][j],7);Serial.print(",");
+             Serial.print(magn_ellipsoid_transform[i][j],7);
+             if (j < 2) Serial.print(",");
            }
+           Serial.print("]");
+           if (i < 2) Serial.print(",");
          }
+         Serial.println("]");
          Serial.println(""); 
-         Serial.print(GYRO_AVERAGE_OFFSET_X);Serial.print(",");
-         Serial.print(GYRO_AVERAGE_OFFSET_Y);Serial.print(",");
-         Serial.println(GYRO_AVERAGE_OFFSET_Z);
-         Serial.println("#END CAL");
+         Serial.print("GYRO_AVERAGE_OFFSET_X:");Serial.println(GYRO_AVERAGE_OFFSET_X);
+         Serial.print("GYRO_AVERAGE_OFFSET_Y:");Serial.println(GYRO_AVERAGE_OFFSET_Y);
+         Serial.print("GYRO_AVERAGE_OFFSET_Z:");Serial.println(GYRO_AVERAGE_OFFSET_Z);
       }
       else if (command == 'c') // Set _i_nput mode
       {
