@@ -36,12 +36,23 @@ import sys
 #from time import time
 from sensor_msgs.msg import Imu
 from tf.transformations import quaternion_from_euler
+from dynamic_reconfigure.server import Server
+from razor_imu_9dof.cfg import imuConfig
 
 degrees2rad = math.pi/180.0
+imu_yaw_calibration = 0.0
+
+# Callback for dynamic reconfigure requests
+def reconfig_callback(config, level):
+    rospy.loginfo("""Reconfigure request for yaw_calibration: %d""" %(config['yaw_calibration']))
+    #if imu_yaw_calibration != config('yaw_calibration'):
+    imu_yaw_calibration = config['yaw_calibration']
+    return config
 
 rospy.init_node("razor_node")
 #We only care about the most recent measurement, i.e. queue_size=1
 pub = rospy.Publisher('imu', Imu, queue_size=1)
+srv = Server(imuConfig, reconfig_callback)  # define dynamic_reconfigure callback
 
 imuMsg = Imu()
 
@@ -208,7 +219,13 @@ while not rospy.is_shutdown():
     if len(words) > 2:
         try:
             #in AHRS firmware z axis points down, in ROS z axis points up (see REP 103)
-            yaw = -float(words[0])*degrees2rad
+            yaw_deg = -float(words[0])
+            #yaw_deg = yaw_deg + imu_yaw_calibration
+            if yaw_deg > 360.0:
+                yaw_deg = yaw_deg - 360.0
+            if yaw_deg < 0.0:
+                yaw_deg = yaw_deg + 360.0
+            yaw = yaw_deg*degrees2rad
             #in AHRS firmware y axis points right, in ROS y axis points left (see REP 103)
             pitch = -float(words[1])*degrees2rad
             roll = float(words[2])*degrees2rad
