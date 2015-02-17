@@ -157,3 +157,4 @@ def processIMU_message(imuMsg):
 
 
 sub = rospy.Subscriber('imu', Imu, processIMU_message)
+rospy.spin()

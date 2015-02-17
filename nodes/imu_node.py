@@ -114,9 +114,10 @@ magn_y_min = rospy.get_param('~magn_y_min', -600.0)
 magn_y_max = rospy.get_param('~magn_y_max', 600.0)
 magn_z_min = rospy.get_param('~magn_z_min', -600.0)
 magn_z_max = rospy.get_param('~magn_z_max', 600.0)
-calibration_magn_use_extended = rospy.get_param('~calibration_magn_use_extended', True)
+calibration_magn_use_extended = rospy.get_param('~calibration_magn_use_extended', False)
 magn_ellipsoid_center = rospy.get_param('~magn_ellipsoid_center', [0, 0, 0])
 magn_ellipsoid_transform = rospy.get_param('~magn_ellipsoid_transform', [[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+imu_yaw_calibration[0] = rospy.get_param('~imu_yaw_calibration', 0.0)
 
 # gyroscope
 gyro_average_offset_x = rospy.get_param('~gyro_average_offset_x', 0.0)
