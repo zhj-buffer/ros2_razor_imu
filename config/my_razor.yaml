@@ -21,7 +21,7 @@ magn_z_min: -600.0
 magn_z_max: 600.0
 
 # extended calibration
-calibration_magn_use_extended: true
+calibration_magn_use_extended: false
 magn_ellipsoid_center: [0, 0, 0]
 magn_ellipsoid_transform: [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
 

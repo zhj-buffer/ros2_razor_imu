@@ -40,13 +40,14 @@ from dynamic_reconfigure.server import Server
 from razor_imu_9dof.cfg import imuConfig
 
 degrees2rad = math.pi/180.0
-imu_yaw_calibration = 0.0
+imu_yaw_calibration = [0.0]
 
 # Callback for dynamic reconfigure requests
 def reconfig_callback(config, level):
     rospy.loginfo("""Reconfigure request for yaw_calibration: %d""" %(config['yaw_calibration']))
     #if imu_yaw_calibration != config('yaw_calibration'):
-    imu_yaw_calibration = config['yaw_calibration']
+    imu_yaw_calibration[0] = config['yaw_calibration']
+    print "set imu_yaw_calibration to %d\n" % (imu_yaw_calibration[0])
     return config
 
 rospy.init_node("razor_node")
@@ -136,8 +137,6 @@ except serial.serialutil.SerialException:
     #exit
     sys.exit(0)
 
-#f = open("Serial"+str(time())+".txt", 'w')
-
 roll=0
 pitch=0
 yaw=0
@@ -211,6 +210,8 @@ rospy.loginfo("Flushing first 200 IMU entries...")
 for x in range(0, 200):
     line = ser.readline()
 rospy.loginfo("Publishing IMU data...")
+#f = open("raw_imu_data.log", 'w')
+
 while not rospy.is_shutdown():
     line = ser.readline()
     line = line.replace("#YPRAG=","")   # Delete "#YPRAG="
@@ -220,10 +221,10 @@ while not rospy.is_shutdown():
         try:
             #in AHRS firmware z axis points down, in ROS z axis points up (see REP 103)
             yaw_deg = -float(words[0])
-            #yaw_deg = yaw_deg + imu_yaw_calibration
-            if yaw_deg > 360.0:
+            yaw_deg = yaw_deg + imu_yaw_calibration[0]
+            if yaw_deg > 180.0:
                 yaw_deg = yaw_deg - 360.0
-            if yaw_deg < 0.0:
+            if yaw_deg < -180.0:
                 yaw_deg = yaw_deg + 360.0
             yaw = yaw_deg*degrees2rad
             #in AHRS firmware y axis points right, in ROS y axis points left (see REP 103)
