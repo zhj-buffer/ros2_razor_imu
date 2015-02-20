@@ -36,12 +36,24 @@ import sys
 #from time import time
 from sensor_msgs.msg import Imu
 from tf.transformations import quaternion_from_euler
+from dynamic_reconfigure.server import Server
+from razor_imu_9dof.cfg import imuConfig
 
 degrees2rad = math.pi/180.0
+imu_yaw_calibration = [0.0]
+
+# Callback for dynamic reconfigure requests
+def reconfig_callback(config, level):
+    rospy.loginfo("""Reconfigure request for yaw_calibration: %d""" %(config['yaw_calibration']))
+    #if imu_yaw_calibration != config('yaw_calibration'):
+    imu_yaw_calibration[0] = config['yaw_calibration']
+    print "set imu_yaw_calibration to %d\n" % (imu_yaw_calibration[0])
+    return config
 
 rospy.init_node("razor_node")
 #We only care about the most recent measurement, i.e. queue_size=1
 pub = rospy.Publisher('imu', Imu, queue_size=1)
+srv = Server(imuConfig, reconfig_callback)  # define dynamic_reconfigure callback
 
 imuMsg = Imu()
 
@@ -102,9 +114,10 @@ magn_y_min = rospy.get_param('~magn_y_min', -600.0)
 magn_y_max = rospy.get_param('~magn_y_max', 600.0)
 magn_z_min = rospy.get_param('~magn_z_min', -600.0)
 magn_z_max = rospy.get_param('~magn_z_max', 600.0)
-calibration_magn_use_extended = rospy.get_param('~calibration_magn_use_extended', True)
+calibration_magn_use_extended = rospy.get_param('~calibration_magn_use_extended', False)
 magn_ellipsoid_center = rospy.get_param('~magn_ellipsoid_center', [0, 0, 0])
 magn_ellipsoid_transform = rospy.get_param('~magn_ellipsoid_transform', [[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+imu_yaw_calibration[0] = rospy.get_param('~imu_yaw_calibration', 0.0)
 
 # gyroscope
 gyro_average_offset_x = rospy.get_param('~gyro_average_offset_x', 0.0)
@@ -124,8 +137,6 @@ except serial.serialutil.SerialException:
     rospy.logerr("IMU not found at port "+port + ". Did you specify the correct port in the launch file?")
     #exit
     sys.exit(0)
-
-#f = open("Serial"+str(time())+".txt", 'w')
 
 roll=0
 pitch=0
@@ -200,6 +211,8 @@ rospy.loginfo("Flushing first 200 IMU entries...")
 for x in range(0, 200):
     line = ser.readline()
 rospy.loginfo("Publishing IMU data...")
+#f = open("raw_imu_data.log", 'w')
+
 while not rospy.is_shutdown():
     line = ser.readline()
     line = line.replace("#YPRAG=","")   # Delete "#YPRAG="
@@ -208,7 +221,13 @@ while not rospy.is_shutdown():
     if len(words) > 2:
         try:
             #in AHRS firmware z axis points down, in ROS z axis points up (see REP 103)
-            yaw = -float(words[0])*degrees2rad
+            yaw_deg = -float(words[0])
+            yaw_deg = yaw_deg + imu_yaw_calibration[0]
+            if yaw_deg > 180.0:
+                yaw_deg = yaw_deg - 360.0
+            if yaw_deg < -180.0:
+                yaw_deg = yaw_deg + 360.0
+            yaw = yaw_deg*degrees2rad
             #in AHRS firmware y axis points right, in ROS y axis points left (see REP 103)
             pitch = -float(words[1])*degrees2rad
             roll = float(words[2])*degrees2rad
