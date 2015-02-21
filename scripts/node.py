@@ -36,12 +36,15 @@ import sys
 #from time import time
 from sensor_msgs.msg import Imu
 from tf.transformations import quaternion_from_euler
+from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 degrees2rad = math.pi/180.0
 
 rospy.init_node("razor_node")
 #We only care about the most recent measurement, i.e. queue_size=1
 pub = rospy.Publisher('imu', Imu, queue_size=1)
+diag_pub = rospy.Publisher('diagnostics', DiagnosticArray)
+diag_pub_time = rospy.get_time();
 
 imuMsg = Imu()
 
@@ -98,6 +101,7 @@ except serial.serialutil.SerialException:
 roll=0
 pitch=0
 yaw=0
+seq=0
 accel_factor = 9.806 / 256.0    # sensor reports accel as 256.0 = 1G (9.8m/s^2). Convert to m/s^2.
 rospy.loginfo("Giving the razor IMU board 5 seconds to boot...")
 rospy.sleep(5) # Sleep for 5 seconds to wait for the board to boot then only write command.
@@ -109,6 +113,7 @@ rospy.loginfo("Flushing first 200 IMU entries...")
 for x in range(0, 200):
     line = ser.readline()
 rospy.loginfo("Publishing IMU data...")
+
 while not rospy.is_shutdown():
     line = ser.readline()
     line = line.replace("#YPRAG=","")   # Delete "#YPRAG="
@@ -144,7 +149,28 @@ while not rospy.is_shutdown():
         imuMsg.orientation.w = q[3]
         imuMsg.header.stamp= rospy.Time.now()
         imuMsg.header.frame_id = 'base_imu_link'
+        imuMsg.header.seq = seq
+        seq = seq + 1
         pub.publish(imuMsg)
         
+        if (diag_pub_time < rospy.get_time()) :
+            diag_pub_time += 1
+            diag_arr = DiagnosticArray()
+            diag_arr.header.stamp = rospy.get_rostime()
+            diag_arr.header.frame_id = '1'
+            diag_msg = DiagnosticStatus()
+            diag_msg.name = 'Razor_Imu'
+            diag_msg.level = DiagnosticStatus.OK
+            diag_msg.message = 'Received AHRS measurement'
+            diag_msg.values.append(KeyValue('roll (deg)', 
+                                    str(roll*(180.0/math.pi))))
+            diag_msg.values.append(KeyValue('pitch (deg)', 
+                                    str(pitch*(180.0/math.pi))))
+            diag_msg.values.append(KeyValue('yaw (deg)', 
+                                    str(yaw*(180.0/math.pi))))
+            diag_msg.values.append(KeyValue('sequence number', str(seq)))
+            diag_arr.status.append(diag_msg)
+            diag_pub.publish(diag_arr)
+
 ser.close
 #f.close
