@@ -40,14 +40,15 @@ from dynamic_reconfigure.server import Server
 from razor_imu_9dof.cfg import imuConfig
 
 degrees2rad = math.pi/180.0
-imu_yaw_calibration = [0.0]
+imu_yaw_calibration = 0.0
 
 # Callback for dynamic reconfigure requests
 def reconfig_callback(config, level):
+    global imu_yaw_calibration
     rospy.loginfo("""Reconfigure request for yaw_calibration: %d""" %(config['yaw_calibration']))
     #if imu_yaw_calibration != config('yaw_calibration'):
-    imu_yaw_calibration[0] = config['yaw_calibration']
-    print "set imu_yaw_calibration to %d\n" % (imu_yaw_calibration[0])
+    imu_yaw_calibration = config['yaw_calibration']
+    print "set imu_yaw_calibration to %d\n" % (imu_yaw_calibration)
     return config
 
 rospy.init_node("razor_node")
@@ -117,7 +118,7 @@ magn_z_max = rospy.get_param('~magn_z_max', 600.0)
 calibration_magn_use_extended = rospy.get_param('~calibration_magn_use_extended', False)
 magn_ellipsoid_center = rospy.get_param('~magn_ellipsoid_center', [0, 0, 0])
 magn_ellipsoid_transform = rospy.get_param('~magn_ellipsoid_transform', [[0, 0, 0], [0, 0, 0], [0, 0, 0]])
-imu_yaw_calibration[0] = rospy.get_param('~imu_yaw_calibration', 0.0)
+imu_yaw_calibration = rospy.get_param('~imu_yaw_calibration', 0.0)
 
 # gyroscope
 gyro_average_offset_x = rospy.get_param('~gyro_average_offset_x', 0.0)
@@ -222,7 +223,7 @@ while not rospy.is_shutdown():
         try:
             #in AHRS firmware z axis points down, in ROS z axis points up (see REP 103)
             yaw_deg = -float(words[0])
-            yaw_deg = yaw_deg + imu_yaw_calibration[0]
+            yaw_deg = yaw_deg + imu_yaw_calibration
             if yaw_deg > 180.0:
                 yaw_deg = yaw_deg - 360.0
             if yaw_deg < -180.0:
