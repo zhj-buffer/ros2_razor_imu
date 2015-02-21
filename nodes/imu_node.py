@@ -48,7 +48,7 @@ def reconfig_callback(config, level):
     rospy.loginfo("""Reconfigure request for yaw_calibration: %d""" %(config['yaw_calibration']))
     #if imu_yaw_calibration != config('yaw_calibration'):
     imu_yaw_calibration = config['yaw_calibration']
-    print "set imu_yaw_calibration to %d\n" % (imu_yaw_calibration)
+    rospy.loginfo("Set imu_yaw_calibration to %d" % (imu_yaw_calibration))
     return config
 
 rospy.init_node("razor_node")
