@@ -30,6 +30,7 @@
 import rospy
 from visual import *
 import math
+import wx
 
 from sensor_msgs.msg import Imu
 from tf.transformations import euler_from_quaternion
@@ -37,6 +38,16 @@ from tf.transformations import euler_from_quaternion
 rad2degrees = 180.0/math.pi
 precision = 2 #round to this number of digits
 yaw_offset = 0 #used to align animation upon key press
+
+
+#Create shutdown hook to kill visual displays
+def shutdown_hook():
+    #print "Killing displays"
+    wx.Exit()
+
+#register shutdown hook
+rospy.on_shutdown(shutdown_hook)
+
 
 # Main scene
 scene=display(title="9DOF Razor IMU Main Screen")
@@ -157,3 +168,4 @@ def processIMU_message(imuMsg):
 
 
 sub = rospy.Subscriber('imu', Imu, processIMU_message)
+rospy.spin()
