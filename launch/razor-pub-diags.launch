@@ -3,8 +3,7 @@
         <rosparam file="$(find razor_imu_9dof)/config/my_razor.yaml" command="load"/>
     </node>
 
-    <node pkg="diagnostic_aggregator" type="aggregator_node" name="diagnostic_aggregator" >
-        <rosparam command="delete" param="/diagnostic_aggregator" />
+    <node pkg="diagnostic_aggregator" type="aggregator_node" name="diagnostic_aggregator"  clear_params="true">
         <rosparam command="load" file="$(find razor_imu_9dof)/config/razor_diags.yaml" />
     </node>
 
