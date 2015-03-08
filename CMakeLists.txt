@@ -3,7 +3,7 @@ project(razor_imu_9dof)
 
 find_package(catkin REQUIRED COMPONENTS dynamic_reconfigure)
 
-generate_dynamic_reconfigure_options(config/calibrate_yaw.cfg)
+generate_dynamic_reconfigure_options(cfg/imu.cfg)
 
 catkin_package(DEPENDS CATKIN DEPENDS dynamic_reconfigure)
 
