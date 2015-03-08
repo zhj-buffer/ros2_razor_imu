@@ -2,6 +2,17 @@
 Changelog for package razor_imu_9dof
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.0 (08-03-2015)
+------------------
+* Resolving bug in exiting display_3D_visualization (`#15 <https://github.com/KristofRobot/razor_imu_9dof/issues/15>`_)
+* Adding dynamic reconfigure for yaw calibration (Paul Bouchier)
+* Moving calibration values from firmware to ROS yaml file (`#13 <https://github.com/KristofRobot/razor_imu_9dof/issues/13>`_)
+
+    * Note: this is a BREAKING CHANGE - requires firmware update (updated firmware provided)
+    
+* Refactoring code: moved scripts to nodes, renamed node.py to imu_node.py (Paul Bouchier)
+* Adding diagnostic status reporting (Paul Bouchier)
+
 1.0.5 (15-11-2014)
 ------------------
 * Moving scripts from nodes to scripts dir
