@@ -83,3 +83,19 @@ http://wiki.ros.org/razor_imu_9dof
 A copy of Peter Bartz's magnetometer calibration scripts from https://github.com/ptrbrtz/razor-9dof-ahrs is provided in the ``magnetometer_calibration`` directory.
 
 Update ``my_razor.yaml`` with the new calibration parameters.
+
+Dynamic Reconfigure
+-------------------
+After having launched the publisher with one of the launch commands listed above, 
+it is possible to dynamically reconfigure the yaw calibration.
+
+1) Run:
+
+    $ rosrun rqt_reconfigure rqt_reconfigure 
+    
+2) Select ``imu_node``. 
+
+3) Change the slider to move the calibration +/- 10 degrees. 
+If you are running the 3D visualization you'll see the display jump when the new calibration takes effect.
+
+The intent of this feature is to let you tune the alignment of the AHRS to the direction of the robot driving direction, so that if you can determine that, for example, the AHRS reads 30 degrees when the robot is actually going at 35 degrees as shown by e.g. GPS, you can tune the calibration to make it read 35. It's the compass-equivalent of bore-sighting a camera.
