@@ -41,18 +41,36 @@ Use this version - it emits linear acceleration and angular velocity data requir
 3) Upload Arduino sketch to the Sparkfun 9DOF Razor IMU board
 
 
+Configure
+---------
+In its default configuration, ``razor_imu_9dof`` expects a yaml config file ``my_razor.yaml`` with:
+* USB port to use
+* Calibration parameters
+
+An example``razor.yaml`` file is provided.
+Copy that file to ``my_razor.yaml`` as follows:
+
+    $ roscd razor_imu_9dof/config
+    $ cp razor.yaml my_razor.yaml
+
+Then, edit ``my_razor.yaml`` as needed
+
 Launch
 ------
 Publisher and 3D visualization:
-	
-	$ roslaunch razor_imu_9dof razor-pub-and-display.launch device_port:=/dev/ttyUSB0
+
+	$ roslaunch razor_imu_9dof razor-pub-and-display.launch
 
 Publisher only:
-	
-	$ roslaunch razor_imu_9dof razor-pub.launch device_port:=/dev/ttyUSB0
+
+	$ roslaunch razor_imu_9dof razor-pub.launch
+
+Publisher only with diagnostics:
+
+	$ roslaunch razor_imu_9dof razor-pub-diags.launch
 
 3D visualization only:
-	
+
 	$ roslaunch razor_imu_9dof razor-display.launch
 
 
@@ -63,3 +81,5 @@ For best accuracy, follow the tutorial to calibrate the sensors:
 http://wiki.ros.org/razor_imu_9dof
 
 A copy of Peter Bartz's magnetometer calibration scripts from https://github.com/ptrbrtz/razor-9dof-ahrs is provided in the ``magnetometer_calibration`` directory.
+
+Update ``my_razor.yaml`` with the new calibration parameters.
