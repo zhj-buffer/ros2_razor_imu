@@ -2,6 +2,10 @@
 Changelog for package razor_imu_9dof
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.1 (02-07-2016)
+------------------
+* Passing razor_config_file as ros parameter in launch file (Daniel Koguciuk)
+
 1.1.0 (08-03-2015)
 ------------------
 * Resolving bug in exiting display_3D_visualization (`#15 <https://github.com/KristofRobot/razor_imu_9dof/issues/15>`_)
