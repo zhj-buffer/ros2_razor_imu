@@ -4,12 +4,8 @@ Changelog for package razor_imu_9dof
 
 1.2.0 (20-12-2017)
 ------------------
-* Adding firmware support for SEN-14001 (9DoF Razor IMU M0) from https://github.com/lebarsfa/razor-9dof-ahrs (`#28 <https://github.com/KristofRobot/razor_imu_9dof/issues/28>`_).
+* Adding firmware support for SEN-14001 (9DoF Razor IMU M0) (lebarsfa)
 
-    * Note: 
-		* For SEN-14001 (9DoF Razor IMU M0), you will need to follow the same instructions as for the default firmware on https://learn.sparkfun.com/tutorials/9dof-razor-imu-m0-hookup-guide and use an updated version of SparkFun_MPU-9250-DMP_Arduino_Library from https://github.com/lebarsfa/SparkFun_MPU-9250-DMP_Arduino_Library (an updated version of the default firmware is also available on https://github.com/lebarsfa/9DOF_Razor_IMU).
-		* There is also a minor update in the calibration tools provided.
-    
 1.1.1 (02-07-2016)
 ------------------
 * Passing razor_config_file as ros parameter in launch file (Daniel Koguciuk)
