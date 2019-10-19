@@ -34,6 +34,7 @@ import math
 import sys
 from time import sleep
 from lib.serial_commands import *
+import yaml
 
 #from time import time
 from sensor_msgs.msg import Imu
@@ -54,13 +55,63 @@ def reconfig_callback(config, level):
     rospy.loginfo("Set imu_yaw_calibration to %d" % (imu_yaw_calibration))
     return config
 
-def send_command(serial_instance, command):
-    command = command + chr(13)
-    expected_len = len(command)
-    res = serial_instance.write(command)
+def send_command(serial_instance, command, value=None):
+    if value is None:
+        cmd = command + chr(13)
+    else:
+        cmd = command + str(value) + chr(13)
+    rospy.loginfo("Sending: %s", cmd)
+    expected_len = len(cmd)
+    res = serial_instance.write(cmd)
     if (res != expected_len):
         rospy.logerr("Expected serial command len (%d) didn't match amount of bytes written (%d) for command %s", expected_len, res, command)
     sleep(0.05) # Don't spam serial with too many commands at once
+
+def write_and_check_config(serial_instance, calib_dict):
+    send_command(serial_instance, SET_CALIB_ACC_X_MIN, calib_dict["accel_x_min"])
+    send_command(serial_instance, SET_CALIB_ACC_X_MAX, calib_dict["accel_x_max"])
+    send_command(serial_instance, SET_CALIB_ACC_Y_MIN, calib_dict["accel_y_min"])
+    send_command(serial_instance, SET_CALIB_ACC_Y_MAX, calib_dict["accel_y_max"])
+    send_command(serial_instance, SET_CALIB_ACC_Z_MIN, calib_dict["accel_z_min"])
+    send_command(serial_instance, SET_CALIB_ACC_Z_MAX, calib_dict["accel_z_max"])
+
+    if not calib_dict["magn_use_extended"]:
+        send_command(serial_instance, SET_MAG_X_MIN, calib_dict["magn_x_min"])
+        send_command(serial_instance, SET_MAG_X_MAX, calib_dict["magn_x_max"])
+        send_command(serial_instance, SET_MAG_Y_MIN, calib_dict["magn_y_min"])
+        send_command(serial_instance, SET_MAG_Y_MAX, calib_dict["magn_y_max"])
+        send_command(serial_instance, SET_MAG_Z_MIN, calib_dict["magn_z_min"])
+        send_command(serial_instance, SET_MAG_Z_MAX, calib_dict["magn_z_max"])
+    else:
+        send_command(serial_instance, SET_MAG_ELLIPSOID_CENTER_0, calib_dict["magn_ellipsoid_center"][0])
+        send_command(serial_instance, SET_MAG_ELLIPSOID_CENTER_1, calib_dict["magn_ellipsoid_center"][1])
+        send_command(serial_instance, SET_MAG_ELLIPSOID_CENTER_2, calib_dict["magn_ellipsoid_center"][2])
+        send_command(serial_instance, SET_MAG_ELLIPSOID_TRANSFORM_0_0, calib_dict["magn_ellipsoid_transform"][0][0])
+        send_command(serial_instance, SET_MAG_ELLIPSOID_TRANSFORM_0_1, calib_dict["magn_ellipsoid_transform"][0][1])
+        send_command(serial_instance, SET_MAG_ELLIPSOID_TRANSFORM_0_2, calib_dict["magn_ellipsoid_transform"][0][2])
+        send_command(serial_instance, SET_MAG_ELLIPSOID_TRANSFORM_1_0, calib_dict["magn_ellipsoid_transform"][1][0])
+        send_command(serial_instance, SET_MAG_ELLIPSOID_TRANSFORM_1_1, calib_dict["magn_ellipsoid_transform"][1][1])
+        send_command(serial_instance, SET_MAG_ELLIPSOID_TRANSFORM_1_2, calib_dict["magn_ellipsoid_transform"][1][2])
+        send_command(serial_instance, SET_MAG_ELLIPSOID_TRANSFORM_2_0, calib_dict["magn_ellipsoid_transform"][2][0])
+        send_command(serial_instance, SET_MAG_ELLIPSOID_TRANSFORM_2_1, calib_dict["magn_ellipsoid_transform"][2][1])
+        send_command(serial_instance, SET_MAG_ELLIPSOID_TRANSFORM_2_2, calib_dict["magn_ellipsoid_transform"][2][2])
+
+    send_command(serial_instance, SET_GYRO_AVERAGE_OFFSET_X, calib_dict["gyro_average_offset_x"])
+    send_command(serial_instance, SET_GYRO_AVERAGE_OFFSET_Y, calib_dict["gyro_average_offset_y"])
+    send_command(serial_instance, SET_GYRO_AVERAGE_OFFSET_Z, calib_dict["gyro_average_offset_z"])
+
+    send_command(serial_instance, GET_CALIBRATION_VALUES)
+    config = ""
+    for _ in range(0, 21):
+        # Format each line received from serial into proper yaml with lowercase variable names
+        config += serial_instance.readline().lower().replace(":", ": ")
+        # TODO: round the numbers, otherwise we will get false negatives in the check phase
+
+    config_parsed = yaml.load(config)
+    for key in calib_dict:
+        if config_parsed[key] != calib_dict[key]:
+            rospy.logwarn("The calibration value of [%s] did not match. Expected: %s, received: %s",
+                          key, str(calib_dict[key]), str(config_parsed[key]))
 
 rospy.init_node("razor_node")
 #We only care about the most recent measurement, i.e. queue_size=1
@@ -173,6 +224,7 @@ accel_factor = 9.806 / 256.0    # sensor reports accel as 256.0 = 1G (9.8m/s^2).
 ### configure board ###
 #stop datastream
 send_command(ser, STOP_DATASTREAM)
+write_and_check_config(ser, calib_dict)
 
 #discard old input
 #automatic flush - NOT WORKING
@@ -185,37 +237,7 @@ send_command(ser, STOP_DATASTREAM)
 
 # rospy.loginfo("Writing calibration values to razor IMU board...")
 # #set calibration values
-# ser.write('#caxm' + str(accel_x_min) + chr(13))
-# ser.write('#caxM' + str(accel_x_max) + chr(13))
-# ser.write('#caym' + str(accel_y_min) + chr(13))
-# ser.write('#cayM' + str(accel_y_max) + chr(13))
-# ser.write('#cazm' + str(accel_z_min) + chr(13))
-# ser.write('#cazM' + str(accel_z_max) + chr(13))
 
-# if (not calibration_magn_use_extended):
-#     ser.write('#cmxm' + str(magn_x_min) + chr(13))
-#     ser.write('#cmxM' + str(magn_x_max) + chr(13))
-#     ser.write('#cmym' + str(magn_y_min) + chr(13))
-#     ser.write('#cmyM' + str(magn_y_max) + chr(13))
-#     ser.write('#cmzm' + str(magn_z_min) + chr(13))
-#     ser.write('#cmzM' + str(magn_z_max) + chr(13))
-# else:
-#     ser.write('#ccx' + str(magn_ellipsoid_center[0]) + chr(13))
-#     ser.write('#ccy' + str(magn_ellipsoid_center[1]) + chr(13))
-#     ser.write('#ccz' + str(magn_ellipsoid_center[2]) + chr(13))
-#     ser.write('#ctxX' + str(magn_ellipsoid_transform[0][0]) + chr(13))
-#     ser.write('#ctxY' + str(magn_ellipsoid_transform[0][1]) + chr(13))
-#     ser.write('#ctxZ' + str(magn_ellipsoid_transform[0][2]) + chr(13))
-#     ser.write('#ctyX' + str(magn_ellipsoid_transform[1][0]) + chr(13))
-#     ser.write('#ctyY' + str(magn_ellipsoid_transform[1][1]) + chr(13))
-#     ser.write('#ctyZ' + str(magn_ellipsoid_transform[1][2]) + chr(13))
-#     ser.write('#ctzX' + str(magn_ellipsoid_transform[2][0]) + chr(13))
-#     ser.write('#ctzY' + str(magn_ellipsoid_transform[2][1]) + chr(13))
-#     ser.write('#ctzZ' + str(magn_ellipsoid_transform[2][2]) + chr(13))
-
-# ser.write('#cgx' + str(gyro_average_offset_x) + chr(13))
-# ser.write('#cgy' + str(gyro_average_offset_y) + chr(13))
-# ser.write('#cgz' + str(gyro_average_offset_z) + chr(13))
 
 # #print calibration values for verification by user
 # ser.flushInput()
