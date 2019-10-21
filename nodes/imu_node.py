@@ -191,14 +191,6 @@ calib_dict["gyro_average_offset_z"] = rospy.get_param('~gyro_average_offset_z', 
 
 imu_yaw_calibration = rospy.get_param('~imu_yaw_calibration', 0.0)
 
-# variables for calibration verification
-verify_calibration = rospy.get_param('~verify_calibration', True)
-calibration_file = rospy.get_param('~calibration_path', None) #set this in the launch file
-
-if verify_calibration and calibration_file is None:
-    rospy.logerr("Verify calibration has been enabled but no calibration path was provided")
-    exit(-1)
-
 #rospy.loginfo("%f %f %f %f %f %f", accel_x_min, accel_x_max, accel_y_min, accel_y_max, accel_z_min, accel_z_max)
 #rospy.loginfo("%f %f %f %f %f %f", magn_x_min, magn_x_max, magn_y_min, magn_y_max, magn_z_min, magn_z_max)
 #rospy.loginfo("%s %s %s", str(calibration_magn_use_extended), str(magn_ellipsoid_center), str(magn_ellipsoid_transform[0][0]))
