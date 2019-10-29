@@ -629,12 +629,25 @@ char readChar()
 
 void setup()
 {
-  // Init serial output
-  LOG_PORT.begin(OUTPUT__BAUD_RATE);
-  
   // Init status LED
   pinMode (STATUS_LED_PIN, OUTPUT);
   digitalWrite(STATUS_LED_PIN, LOW);
+  double time_old = 0;
+  // Init serial output
+  LOG_PORT.end();
+  delay(50);
+  LOG_PORT.begin(OUTPUT__BAUD_RATE);
+  while(!LOG_PORT){
+    if (millis() - time_old > 10000){
+      time_old = millis();
+      digitalWrite(STATUS_LED_PIN, HIGH);
+      delay(50);
+      #if HW__VERSION_CODE == 14001
+        NVIC_SystemReset();      // processor software reset
+      #endif
+      } 
+    }
+  
 
   // Init sensors
   delay(50);  // Give sensors enough time to start
@@ -672,6 +685,9 @@ void loop()
 {
   // Read incoming control messages
  #if HW__VERSION_CODE == 14001
+  if (!LOG_PORT)
+    NVIC_SystemReset();      // processor software reset
+    
   // Compatibility fix : if bytes are sent 1 by 1 without being read, available() might never return more than 1...
   // Therefore, we need to read bytes 1 by 1 and the command byte needs to be a blocking read...
   if (LOG_PORT.available() >= 1)
