@@ -1,6 +1,6 @@
-port: /dev/ttyUSB0
+port: /dev/ttyACM0
 frame_header: "base_imu_link"
-publish_magnetometer: false
+
 
 accel_x_min: -250.0
 accel_x_max: 250.0
@@ -15,6 +15,8 @@ magn_y_min: -600.0
 magn_y_max: 600.0
 magn_z_min: -600.0
 magn_z_max: 600.0
+
+publish_magnetometer: true
 
 # extended mag calibration
 calibration_magn_use_extended: false

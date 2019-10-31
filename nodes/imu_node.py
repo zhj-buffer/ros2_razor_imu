@@ -35,6 +35,7 @@ import sys
 from time import sleep
 from lib.serial_commands import *
 import yaml
+import time
 
 #from time import time
 from sensor_msgs.msg import Imu
@@ -61,11 +62,11 @@ def send_command(serial_instance, command, value = None):
         cmd = command + chr(13)
     else:
         cmd = command + str(value) + chr(13)
-    rospy.loginfo("Sending: %s", cmd)
+    rospy.loginfo("Razor IMU -> Sending: %s", cmd)
     expected_len = len(cmd)
     res = serial_instance.write(cmd)
     if (res != expected_len):
-        rospy.logerr("Expected serial command len (%d) didn't match amount of bytes written (%d) for command %s", expected_len, res, command)
+        rospy.logerr("Razor IMU -> Expected serial command len (%d) didn't match amount of bytes written (%d) for command %s", expected_len, res, command)
     sleep(0.05) # Don't spam serial with too many commands at once
 
 def write_and_check_config(serial_instance, calib_dict):
@@ -114,8 +115,6 @@ def write_and_check_config(serial_instance, calib_dict):
             rospy.logwarn("The calibration value of [%s] did not match. Expected: %s, received: %s",
                           key, str(calib_dict[key]), str(config_parsed[key]))
 
-publish_magnetometer = rospy.get_param('~publish_magnetometer', False)
-
 rospy.init_node("razor_imu")
 #We only care about the most recent measurement, i.e. queue_size=1
 pub_imu = rospy.Publisher('imu', Imu, queue_size=1)
@@ -128,6 +127,8 @@ imuMsg.orientation_covariance = rospy.get_param('~orientation_covariance')
 imuMsg.angular_velocity_covariance = rospy.get_param('~velocity_covariance')
 imuMsg.linear_acceleration_covariance = rospy.get_param('~acceleration_covariance')
 imuMsg.header.frame_id = rospy.get_param('~frame_header', 'base_imu_link')
+
+publish_magnetometer = rospy.get_param('~publish_magnetometer', False)
 
 if publish_magnetometer:
     pub_mag = rospy.Publisher('mag', MagneticField, queue_size=1)
@@ -170,21 +171,26 @@ calib_dict["gyro_average_offset_z"] = rospy.get_param('~gyro_average_offset_z', 
 imu_yaw_calibration = rospy.get_param('~imu_yaw_calibration', 0.0)
 
 # Check your COM port and baud rate
-rospy.loginfo("Opening %s...", port)
-try:
-    ser = serial.Serial(port=port, baudrate=57600, timeout=1)
-except serial.serialutil.SerialException:
-    rospy.logerr("IMU not found at port "+port + ". Did you specify the correct port in the launch file?")
-    #exit
-    sys.exit(0)
+rospy.loginfo("Razor IMU -> Opening %s...", port)
+connection_attempts = 5
+for connection_tries in range (0,connection_attempts + 1):
+    try:
+        ser = serial.Serial(port=port, baudrate=57600, timeout=1)
+        break
+    except serial.serialutil.SerialException:
+        rospy.logerr("Razor IMU not found at port " + port + ". Did you specify the correct port in the launch file? Trying %d more times...", 5 -  connection_tries)
+        
+    if connection_tries == connection_attempts:
+        #exit
+        sys.exit(0)
+    time.sleep(3)
 
 roll=0
 pitch=0
 yaw=0
 seq=0
 accel_factor = 9.806 / 256.0    # sensor reports accel as 256.0 = 1G (9.8m/s^2). Convert to m/s^2.
-# rospy.loginfo("Giving the razor IMU board 5 seconds to boot...")
-# rospy.sleep(5) # Sleep for 5 seconds to wait for the board to boot
+
 
 ### configure board ###
 #stop datastream
@@ -199,6 +205,8 @@ else:
     line_start = LINE_START_NO_MAG
 
 send_command(ser, START_DATASTREAM)
+
+rospy.loginfo("Razor IMU up and running")
 
 while not rospy.is_shutdown():
     line = ser.readline()
