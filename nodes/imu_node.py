@@ -244,7 +244,8 @@ while not rospy.is_shutdown():
         if publish_magnetometer:
             #according to line 178 the units published of the mag are mGauss
             #REP103 specifys the units of magnetic field to be Teslas
-            #The axis of the MPU magnetometer are X forward, Y right and Z down,
+            #The axis of the MPU magnetometer are X forward, Y right and Z down
+            #  when the chip is facing forward, in the sparkfun board, the chip is facing the left side
             # but Sparkfun the firmware interchanges x and y and changes the sign of y
             # so to get it to REP103 we need to swap X and Y again and make Y and Z negative
             magMsg.magnetic_field.x = float(words[10]) * 1e-7
