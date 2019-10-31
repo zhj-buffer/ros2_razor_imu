@@ -1,6 +1,6 @@
 port: /dev/ttyUSB0
 frame_header: "base_imu_link"
-use_magnetometer: false
+publish_magnetometer: false
 
 accel_x_min: -250.0
 accel_x_max: 250.0
@@ -41,6 +41,6 @@ acceleration_covariance: [0.04, 0,    0,
                           0,    0.04, 0,
                           0,    0,    0.04]
 
-magnetometer_covariance: [0.00, 0,    0,
-                          0,    0.00, 0,
-                          0,    0,    0.00]
+magnetic_field_covariance: [0.00, 0,    0,
+                            0,    0.00, 0,
+                            0,    0,    0.00]

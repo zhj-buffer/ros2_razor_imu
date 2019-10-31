@@ -38,6 +38,7 @@ import yaml
 
 #from time import time
 from sensor_msgs.msg import Imu
+from sensor_msgs.msg import MagneticField
 from tf.transformations import quaternion_from_euler
 from dynamic_reconfigure.server import Server
 from razor_imu_9dof.cfg import imuConfig
@@ -113,9 +114,11 @@ def write_and_check_config(serial_instance, calib_dict):
             rospy.logwarn("The calibration value of [%s] did not match. Expected: %s, received: %s",
                           key, str(calib_dict[key]), str(config_parsed[key]))
 
+publish_magnetometer = rospy.get_param('~publish_magnetometer', False)
+
 rospy.init_node("razor_imu")
 #We only care about the most recent measurement, i.e. queue_size=1
-pub = rospy.Publisher('imu', Imu, queue_size=1)
+pub_imu = rospy.Publisher('imu', Imu, queue_size=1)
 srv = Server(imuConfig, reconfig_callback)  # define dynamic_reconfigure callback
 diag_pub = rospy.Publisher('diagnostics', DiagnosticArray, queue_size=1)
 diag_pub_time = rospy.get_time()
@@ -126,6 +129,12 @@ imuMsg.angular_velocity_covariance = rospy.get_param('~velocity_covariance')
 imuMsg.linear_acceleration_covariance = rospy.get_param('~acceleration_covariance')
 imuMsg.header.frame_id = rospy.get_param('~frame_header', 'base_imu_link')
 
+if publish_magnetometer:
+    pub_mag = rospy.Publisher('mag', MagneticField, queue_size=1)
+    magMsg = MagneticField()
+    magMsg.magnetic_field_covariance = rospy.get_param('~magnetic_field_covariance')
+    magMsg.header.frame_id = rospy.get_param('~frame_header', 'base_imu_link')
+    #should a separate diagnostic for the Magnetometer should be done?
 
 default_port='/dev/ttyUSB0'
 port = rospy.get_param('~port', default_port)
@@ -181,14 +190,13 @@ accel_factor = 9.806 / 256.0    # sensor reports accel as 256.0 = 1G (9.8m/s^2).
 #stop datastream
 send_command(ser, STOP_DATASTREAM)
 write_and_check_config(ser, calib_dict)
-publish_magnetometer = rospy.get_param('~use_magnetometer', False)
 
 if publish_magnetometer:
-    send_command(ser, SET_TEXT_EXTENDED_FORMAT_NO_MAG)
-    line_start = LINE_START_NO_MAG
-else:
     send_command(ser, SET_TEXT_EXTENDED_FORMAT_WITH_MAG)
     line_start = LINE_START_WITH_MAG
+else:
+    send_command(ser, SET_TEXT_EXTENDED_FORMAT_NO_MAG)
+    line_start = LINE_START_NO_MAG
 
 send_command(ser, START_DATASTREAM)
 
@@ -197,7 +205,7 @@ while not rospy.is_shutdown():
     if not line.startswith(line_start):
         rospy.logerr_throttle(1, "Did not find correct line start in the received IMU message")
         continue
-    line = line.replace(line_start,"")   # Delete "#YPRAG="
+    line = line.replace(line_start,"")   # Delete "#YPRAG=" or "#YPRAGM="
     words = string.split(line,",")    # Fields split
     if len(words) > 2:
         #in AHRS firmware z axis points down, in ROS z axis points up (see REP 103)
@@ -225,6 +233,11 @@ while not rospy.is_shutdown():
         #in AHRS firmware z axis points down, in ROS z axis points up (see REP 103)
         imuMsg.angular_velocity.z = -float(words[8])
 
+        if publish_magnetometer:
+            magMsg.magnetic_field.x = float(words[9])
+            magMsg.magnetic_field.y = float(words[10])
+            magMsg.magnetic_field.z = float(words[11])
+
     q = quaternion_from_euler(roll,pitch,yaw)
     imuMsg.orientation.x = q[0]
     imuMsg.orientation.y = q[1]
@@ -233,7 +246,12 @@ while not rospy.is_shutdown():
     imuMsg.header.stamp= rospy.Time.now()
     imuMsg.header.seq = seq
     seq = seq + 1
-    pub.publish(imuMsg)
+    pub_imu.publish(imuMsg)
+    
+    if publish_magnetometer:
+        magMsg.header.stamp = imuMsg.header.stamp
+        magMsg.header.seq = imuMsg.header.seq
+        pub_mag.publish(magMsg)
 
     if (diag_pub_time < rospy.get_time()) :
         diag_pub_time += 1
