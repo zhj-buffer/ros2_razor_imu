@@ -1,5 +1,6 @@
-port: /dev/ttyUSB0
+port: /dev/ttyACM0
 frame_header: "base_imu_link"
+
 
 accel_x_min: -250.0
 accel_x_max: 250.0
@@ -14,6 +15,8 @@ magn_y_min: -600.0
 magn_y_max: 600.0
 magn_z_min: -600.0
 magn_z_max: 600.0
+
+publish_magnetometer: true
 
 # extended mag calibration
 calibration_magn_use_extended: false
@@ -39,3 +42,7 @@ velocity_covariance: [0.002, 0,     0,
 acceleration_covariance: [0.04, 0,    0,
                           0,    0.04, 0,
                           0,    0,    0.04]
+
+magnetic_field_covariance: [0.00, 0,    0,
+                            0,    0.00, 0,
+                            0,    0,    0.00]

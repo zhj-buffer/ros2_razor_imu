@@ -5,10 +5,13 @@ GET_CALIBRATION_VALUES ='#p'
 
 SET_BINARY_FORMAT = '#ob'
 SET_TEXT_FORMAT = '#ot'
-SET_TEXT_EXTENDED_FORMAT = '#ox'  # Use this one in the ROS driver
-
+SET_TEXT_EXTENDED_FORMAT_NO_MAG = '#ox' # Use this one in the ROS driver WITHOUT magnetometer
+SET_TEXT_EXTENDED_FORMAT_WITH_MAG = '#om' # Use this one in the ROS driver WITH magnetometer
 SET_CALIBRATION_OUTPUT_MODE = '#oc'
 NEXT_SENSOR_CALIBRATION = '#on'
+
+LINE_START_NO_MAG = "#YPRAG="
+LINE_START_WITH_MAG = "#YPRAGM="
 
 ENABLE_ERROR_MESSAGE = '#oe1'
 DISABLE_ERROR_MESSAGE = '#oe0'
