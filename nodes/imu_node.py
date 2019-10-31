@@ -234,9 +234,15 @@ while not rospy.is_shutdown():
         imuMsg.angular_velocity.z = -float(words[8])
 
         if publish_magnetometer:
-            magMsg.magnetic_field.x = float(words[9])
-            magMsg.magnetic_field.y = float(words[10])
-            magMsg.magnetic_field.z = float(words[11])
+            #according to line 178 the units published of the mag are mGauss
+            #REP103 specifys the units of magnetic field to be Teslas
+            #The axis of the MPU magnetometer are X forward, Y right and Z down,
+            # but Sparkfun the firmware interchanges x and y and changes the sign of y
+            # so to get it to REP103 we need to swap X and Y again and make Y and Z negative
+            magMsg.magnetic_field.x = float(words[10]) * 1e-7
+            magMsg.magnetic_field.y = -float(words[9]) * 1e-7
+            magMsg.magnetic_field.z = -float(words[11]) * 1e-7
+            #check frame orientation and units
 
     q = quaternion_from_euler(roll,pitch,yaw)
     imuMsg.orientation.x = q[0]
@@ -247,7 +253,7 @@ while not rospy.is_shutdown():
     imuMsg.header.seq = seq
     seq = seq + 1
     pub_imu.publish(imuMsg)
-    
+
     if publish_magnetometer:
         magMsg.header.stamp = imuMsg.header.stamp
         magMsg.header.seq = imuMsg.header.seq
