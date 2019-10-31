@@ -1,5 +1,6 @@
 port: /dev/ttyUSB0
 frame_header: "base_imu_link"
+use_magnetometer: false
 
 accel_x_min: -250.0
 accel_x_max: 250.0
