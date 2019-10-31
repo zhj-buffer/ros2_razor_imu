@@ -55,7 +55,7 @@ def reconfig_callback(config, level):
     rospy.loginfo("Set imu_yaw_calibration to %d" % (imu_yaw_calibration))
     return config
 
-def send_command(serial_instance, command, value=None):
+def send_command(serial_instance, command, value = None):
     if value is None:
         cmd = command + chr(13)
     else:
@@ -180,15 +180,15 @@ accel_factor = 9.806 / 256.0    # sensor reports accel as 256.0 = 1G (9.8m/s^2).
 #stop datastream
 send_command(ser, STOP_DATASTREAM)
 write_and_check_config(ser, calib_dict)
-send_command(ser, SET_TEXT_EXTENDED_FORMAT)
+send_command(ser, SET_TEXT_EXTENDED_FORMAT_NO_MAG)
 send_command(ser, START_DATASTREAM)
 
 while not rospy.is_shutdown():
     line = ser.readline()
-    if not line.startswith("#YPRAG="):
+    if not line.startswith(LINE_START_NO_MAG):
         rospy.logerr_throttle(1, "Did not find #YPRAG in the received IMU message")
         continue
-    line = line.replace("#YPRAG=","")   # Delete "#YPRAG="
+    line = line.replace(LINE_START_NO_MAG,"")   # Delete "#YPRAG="
     words = string.split(line,",")    # Fields split
     if len(words) > 2:
         #in AHRS firmware z axis points down, in ROS z axis points up (see REP 103)
