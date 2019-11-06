@@ -248,8 +248,8 @@ while not rospy.is_shutdown():
             #  when the chip is facing forward, in the sparkfun board, the chip is facing the left side
             # but Sparkfun the firmware interchanges x and y and changes the sign of y
             # so to get it to REP103 we need to swap X and Y again and make Y and Z negative
-            magMsg.magnetic_field.x = float(words[10]) * 1e-7
-            magMsg.magnetic_field.y = -float(words[9]) * 1e-7
+            magMsg.magnetic_field.x = float(words[9]) * 1e-7
+            magMsg.magnetic_field.y = -float(words[10]) * 1e-7
             magMsg.magnetic_field.z = -float(words[11]) * 1e-7
             #check frame orientation and units
 
