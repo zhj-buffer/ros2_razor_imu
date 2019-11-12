@@ -247,7 +247,8 @@ while not rospy.is_shutdown():
             #The axis of the MPU magnetometer are X forward, Y right and Z down
             #  when the chip is facing forward, in the sparkfun board, the chip is facing the left side
             # but Sparkfun the firmware interchanges x and y and changes the sign of y
-            # so to get it to REP103 we need to swap X and Y again and make Y and Z negative
+            # so to get it to REP103 we need to make X and Z negative
+            #The magn frames form sparkfun can be seen in line 178 from Sensors.ino
             magMsg.magnetic_field.x = float(words[9]) * 1e-7
             magMsg.magnetic_field.y = -float(words[10]) * 1e-7
             magMsg.magnetic_field.z = -float(words[11]) * 1e-7
