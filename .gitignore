@@ -2,3 +2,4 @@
 config/my_razor.yaml
 *.pyc
 *.swp
+.idea

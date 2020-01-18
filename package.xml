@@ -1,8 +1,10 @@
-<package>
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>razor_imu_9dof</name>
   <version>1.2.0</version>
   <description>
-     razor_imu_9dof is a package that provides a ROS driver
+     razor_imu_9dof is a package that provides a ROS2 driver
      for the Sparkfun Razor IMU 9DOF. It also provides Arduino
      firmware that runs on the Razor board, and which must be
      installed on the Razor board for the system to work. A node
@@ -21,15 +23,14 @@
 
   <url type="website">http://ros.org/wiki/razor_imu_9dof</url>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <depend>rclpy</depend>
+  <depend>tf2</depend>
+  <depend>sensor_msgs</depend>
+  <depend>python-serial</depend>
 
-  <build_depend>dynamic_reconfigure</build_depend>
-
-  <run_depend>rospy</run_depend>
-  <run_depend>tf</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>python-serial</run_depend>
-  <run_depend>dynamic_reconfigure</run_depend>
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
 </package>
 
 
