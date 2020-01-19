@@ -34,7 +34,7 @@ import string
 import math
 import sys
 from time import sleep
-from lib.serial_commands import *
+from nodes.lib.serial_commands import *
 import yaml
 import time
 
@@ -42,7 +42,6 @@ import time
 from sensor_msgs.msg import Imu
 from sensor_msgs.msg import MagneticField
 from transforms3d.euler import euler2quat as quaternion_from_euler
-from razor_imu_9dof.cfg import imu_config
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 degrees2rad = math.pi / 180.0
@@ -244,7 +243,7 @@ class RazorImuDriver(Node):
         self.get_logger().info("Razor IMU -> Sending: %s", cmd)
         expected_len = len(cmd)
         res = serial_instance.write(cmd)
-        if (res != expected_len):
+        if res != expected_len:
             self.get_logger().error(
                 "Razor IMU -> Expected serial command len (%d) didn't match amount of bytes written (%d) for command %s",
                 expected_len, res, command)
@@ -317,7 +316,7 @@ def main(args=None):
     rclpy.init(args=args)
     node = RazorImuDriver()
 
-    #rclpy.spin(node)
+    rclpy.spin(node)
 
     node.destroy_node()
     rclpy.shutdown()

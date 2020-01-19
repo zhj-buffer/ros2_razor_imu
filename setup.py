@@ -8,7 +8,7 @@ SHARE_DIR = os.path.join("share", PACKAGE_NAME)
 setup(
     name=PACKAGE_NAME,
     version='1.2.0',
-    packages=["nodes"],
+    packages=["nodes", "nodes.lib"],
     data_files=[
         (os.path.join(SHARE_DIR, "launch"), glob(os.path.join("launch", "*.launch.py"))),
         (os.path.join(SHARE_DIR, "config"), glob(os.path.join("config", "*.yaml")))],
