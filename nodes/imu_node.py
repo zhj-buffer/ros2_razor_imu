@@ -30,7 +30,6 @@
 import rclpy
 from rclpy.node import Node
 import serial
-import string
 import math
 import sys
 from time import sleep
@@ -45,36 +44,46 @@ from transforms3d.euler import euler2quat as quaternion_from_euler
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
 
 degrees2rad = math.pi / 180.0
-imu_yaw_calibration = 0.0
 
 
 class RazorImuDriver(Node):
     def __init__(self):
-        super().__init__('razor_imu')
+        super().__init__('imu_node')
         # We only care about the most recent measurement, i.e. queue_size=1
-        pub_imu = self.create_publisher(Imu, 'imu', queue_size=1)
+        pub_imu = self.create_publisher(Imu, 'imu', 1)
 
-        diag_pub = self.create_publisher(DiagnosticArray, 'diagnostics', queue_size=1)
-        diag_pub_time = self.now()
+        diag_pub = self.create_publisher(DiagnosticArray, 'diagnostics', 1)
+        diag_pub_time = self.get_clock().now()
 
         imu_msg = Imu()
-        imu_msg.orientation_covariance = self.declare_parameter('orientation_covariance').value
-        imu_msg.angular_velocity_covariance = self.declare_parameter('velocity_covariance').value
-        imu_msg.linear_acceleration_covariance = self.declare_parameter(
-            'acceleration_covariance').value
+        # TODO arrays not supported as parameter type ROS2
+        imu_msg.orientation_covariance = [0.0025, 0.0, 0.0,
+                                          0.0, 0.0025, 0.0,
+                                          0.0, 0.0, 0.0025]
+        # self.declare_parameter('orientation_covariance').value
+        imu_msg.angular_velocity_covariance = [0.002, 0.0, 0.0,
+                                               0.0, 0.002, 0.0,
+                                               0.0, 0.0, 0.002]
+        # self.declare_parameter('velocity_covariance').value
+        imu_msg.linear_acceleration_covariance = [0.04, 0.0, 0.0,
+                                                  0.0, 0.04, 0.0,
+                                                  0.0, 0.0, 0.04]
+        # self.declare_parameter('acceleration_covariance').value
         imu_msg.header.frame_id = self.declare_parameter('frame_header', 'base_imu_link').value
 
         publish_magnetometer = self.declare_parameter('publish_magnetometer', False).value
 
         if publish_magnetometer:
-            pub_mag = self.create_publisher(MagneticField, 'mag', queue_size=1)
+            pub_mag = self.create_publisher(MagneticField, 'mag', 1)
             mag_msg = MagneticField()
-            mag_msg.magnetic_field_covariance = self.declare_parameter(
-                'magnetic_field_covariance').value
+            mag_msg.magnetic_field_covariance = [0.00, 0, 0,
+                                                 0, 0.00, 0,
+                                                 0, 0, 0.00]
+            # self.declare_parameter('magnetic_field_covariance').value
             mag_msg.header.frame_id = self.declare_parameter('frame_header', 'base_imu_link').value
             # should a separate diagnostic for the Magnetometer be done?
 
-        port = self.declare_parameter('port', '/dev/ttyUSB0').value
+        port = self.declare_parameter('port', '/dev/tty.usbmodem146401').value
 
         # read calibration parameters
         self.calib_dict = {}
@@ -98,9 +107,9 @@ class RazorImuDriver(Node):
             'calibration_magn_use_extended', False).value
         self.calib_dict["magn_ellipsoid_center"] = self.declare_parameter('magn_ellipsoid_center',
                                                                           [0, 0, 0]).value
-        self.calib_dict["magn_ellipsoid_transform"] = self.declare_parameter(
-            'magn_ellipsoid_transform',
-            [[0, 0, 0], [0, 0, 0], [0, 0, 0]]).value
+        # TODO Array of arrays not supported as parameter type ROS2
+        self.calib_dict["magn_ellipsoid_transform"] = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+        # self.declare_parameter('magn_ellipsoid_transform',[[0, 0, 0], [0, 0, 0], [0, 0, 0]]).value
 
         # gyroscope
         self.calib_dict["gyro_average_offset_x"] = self.declare_parameter('gyro_average_offset_x',
@@ -113,16 +122,17 @@ class RazorImuDriver(Node):
         imu_yaw_calibration = self.declare_parameter('imu_yaw_calibration', 0.0).value
 
         # Check your COM port and baud rate
-        self.get_logger().info("Razor IMU -> Opening %s...", port)
+        self.get_logger().info(f"Razor IMU -> Opening {port}...")
         connection_attempts = 5
         for connection_tries in range(0, connection_attempts + 1):
             try:
                 ser = serial.Serial(port=port, baudrate=57600, timeout=1)
                 break
             except serial.serialutil.SerialException:
-                rclpy.get_logger().error(
-                    "Razor IMU not found at port " + port + ". Did you specify the correct port in the launch file? Trying %d more times...",
-                    5 - connection_tries)
+                self.get_logger().error(
+                    f"Razor IMU not found at port {port}. "
+                    f"Did you specify the correct port in the launch file? "
+                    f"Trying {str(5 - connection_tries)} more times...")
 
             if connection_tries == connection_attempts:
                 # exit
@@ -152,13 +162,13 @@ class RazorImuDriver(Node):
         self.get_logger().info("Razor IMU up and running")
 
         while rclpy.ok():
-            line = ser.readline()
+            line = ser.readline().decode("utf-8")
             if not line.startswith(line_start):
                 self.get_logger().error(1,
                                         "Did not find correct line start in the received IMU message")
                 continue
             line = line.replace(line_start, "")  # Delete "#YPRAG=" or "#YPRAGM="
-            words = string.split(line, ",")  # Fields split
+            words = line.split(",")  # Fields split
             if len(words) > 2:
                 # in AHRS firmware z axis points down, in ROS z axis points up (see REP 103)
                 yaw_deg = -float(words[0])
@@ -203,50 +213,48 @@ class RazorImuDriver(Node):
             imu_msg.orientation.y = q[1]
             imu_msg.orientation.z = q[2]
             imu_msg.orientation.w = q[3]
-            imu_msg.header.stamp = self.now()
-            imu_msg.header.seq = seq
-            seq = seq + 1
+            imu_msg.header.stamp = self.get_clock().now().to_msg()
             pub_imu.publish(imu_msg)
 
             if publish_magnetometer:
                 mag_msg.header.stamp = imu_msg.header.stamp
-                mag_msg.header.seq = imu_msg.header.seq
                 pub_mag.publish(mag_msg)
 
-            if (diag_pub_time < rclpy.get_time()):
-                diag_pub_time += 1
+            if (diag_pub_time < self.get_clock().now()):
                 diag_arr = DiagnosticArray()
-                diag_arr.header.stamp = rclpy.get_rostime()
+                diag_arr.header.stamp = self.get_clock().now().to_msg()
                 diag_arr.header.frame_id = '1'
                 diag_msg = DiagnosticStatus()
                 diag_msg.name = 'Razor_Imu'
                 diag_msg.level = DiagnosticStatus.OK
                 diag_msg.message = 'Received AHRS measurement'
-                diag_msg.values.append(KeyValue('roll (deg)',
-                                                str(roll * (180.0 / math.pi))))
-                diag_msg.values.append(KeyValue('pitch (deg)',
-                                                str(pitch * (180.0 / math.pi))))
-                diag_msg.values.append(KeyValue('yaw (deg)',
-                                                str(yaw * (180.0 / math.pi))))
-                diag_msg.values.append(KeyValue('sequence number', str(seq)))
+
+                for obj in [{'roll (deg)': str(roll * (180.0 / math.pi))},
+                             {'pitch (deg)': str(pitch * (180.0 / math.pi))},
+                             {'yaw (deg)': str(yaw * (180.0 / math.pi))}]:
+                    kv = KeyValue()
+                    for k, v in obj.items():
+                        kv.key = k
+                        kv.value = v
+                        diag_msg.values.append(kv)
+
                 diag_arr.status.append(diag_msg)
                 diag_pub.publish(diag_arr)
 
-            self.spin_some()
-        ser.close
+        ser.close()
 
     def send_command(self, serial_instance, command, value=None):
         if value is None:
             cmd = command + chr(13)
         else:
             cmd = command + str(value) + chr(13)
-        self.get_logger().info("Razor IMU -> Sending: %s", cmd)
+        self.get_logger().info(f"Razor IMU -> Sending: {cmd}")
         expected_len = len(cmd)
-        res = serial_instance.write(cmd)
+        res = serial_instance.write(str.encode(cmd))
         if res != expected_len:
             self.get_logger().error(
-                "Razor IMU -> Expected serial command len (%d) didn't match amount of bytes written (%d) for command %s",
-                expected_len, res, command)
+                f"Razor IMU -> Expected serial command len ({str(expected_len)}) "
+                f"didn't match amount of bytes written ({strres}) for command {command}")
         sleep(0.05)  # Don't spam serial with too many commands at once
 
     def write_and_check_config(self, serial_instance, calib_dict):
@@ -301,15 +309,18 @@ class RazorImuDriver(Node):
         config = ""
         for _ in range(0, 21):
             # Format each line received from serial into proper yaml with lowercase variable names
-            config += serial_instance.readline().lower().replace(":", ": ")
+            config += serial_instance.readline().decode("utf-8").lower().replace(":", ": ")
             # TODO: round the numbers, otherwise we will get false negatives in the check phase
 
         config_parsed = yaml.load(config)
         for key in self.calib_dict:
+            print(key)
+            print(config_parsed)
+            print(self.calib_dict)
             if config_parsed[key] != self.calib_dict[key]:
                 self.get_logger().warning(
-                    "The calibration value of [%s] did not match. Expected: %s, received: %s",
-                    key, str(self.calib_dict[key]), str(config_parsed[key]))
+                    f"The calibration value of [{key}] did not match. "
+                    f"Expected: {str(self.calib_dict[key])} , received: {str(config_parsed[key])}")
 
 
 def main(args=None):
@@ -323,4 +334,4 @@ def main(args=None):
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
