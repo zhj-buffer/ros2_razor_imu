@@ -1,5 +1,7 @@
 Official ROS Documentation
 --------------------------
+Converted to ROS2 from the package `razor_imu_9dof`.
+
 A much more extensive and standard ROS-style version of this documentation can be found on the ROS wiki at:
 
 http://wiki.ros.org/razor_imu_9dof
@@ -7,16 +9,13 @@ http://wiki.ros.org/razor_imu_9dof
 
 Install and Configure ROS Package
 ---------------------------------
-1) Install dependencies:
+1) Download code and install: 
 
-	$ sudo apt-get install python-visual
-
-2) Download code:
-
-	$ cd ~/catkin_workspace/src
-	$ git clone https://github.com/KristofRobot/razor_imu_9dof.git
-	$ cd ..
-	$ catkin_make
+    ```
+    $ git clone https://github.com/klintan/ros2_razor_imu.git
+    $ cd ..
+    $ colcon build --symlink-install
+    ```
 
 
 Install Arduino firmware
@@ -62,19 +61,19 @@ Launch
 ------
 Publisher and 3D visualization:
 
-	$ roslaunch razor_imu_9dof razor-pub-and-display.launch
+	$ ros2 launch razor_imu_9dof razor-pub-and-display.launch.py
 
 Publisher only:
 
-	$ roslaunch razor_imu_9dof razor-pub.launch
+	$ ros2 launch razor_imu_9dof razor-pub.launch.py
 
 Publisher only with diagnostics:
 
-	$ roslaunch razor_imu_9dof razor-pub-diags.launch
+	$ ros2 launch razor_imu_9dof razor-pub-diags.launch.py
 
 3D visualization only:
 
-	$ roslaunch razor_imu_9dof razor-display.launch
+	$ ros2 launch razor_imu_9dof razor-display.launch.py
 
 
 Calibrate
@@ -89,6 +88,8 @@ Update ``my_razor.yaml`` with the new calibration parameters.
 
 Dynamic Reconfigure
 -------------------
+Not yet supported in the ROS2 version
+
 After having launched the publisher with one of the launch commands listed above, 
 it is possible to dynamically reconfigure the yaw calibration.
 

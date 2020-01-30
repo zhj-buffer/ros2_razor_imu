@@ -13,7 +13,9 @@
 # limitations under the License.
 
 import sys
+import os
 
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription, LaunchIntrospector, LaunchService
 from launch_ros import actions, get_default_launch_description
 
@@ -22,17 +24,21 @@ def generate_launch_description():
     """
     Launch file for publishing and visualizing Razor IMU data
     """
+    config_path = os.path.join(get_package_share_directory("razor_imu_9dof"), "config",
+                               "razor.yaml")
+
+    print("config path", config_path)
     imu_node = actions.Node(
         package='razor_imu_9dof', node_executable='imu_node', output='screen',
-        parameters=["$(find razor_imu_9dof)/config/razor.yaml"])
+        parameters=[config_path])
 
     display_3D_visualization_node = actions.Node(
-        package='razor_imu_9dof', node_executable='display_3D_visualization', output='screen')
+        package='razor_imu_9dof', node_executable='display_3D_visualization_node', output='screen')
 
     return LaunchDescription([imu_node, display_3D_visualization_node])
 
 
-def main(argv):
+def main(args=None):
     ld = generate_launch_description()
 
     print('Starting introspection of launch description...')

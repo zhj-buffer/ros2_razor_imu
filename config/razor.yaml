@@ -1,6 +1,6 @@
 imu_node:
   ros__parameters:
-    port: /dev/tty.usbmodem145301
+    port: /dev/tty.usbmodem141401
     frame_header: "base_imu_link"
 
 
@@ -33,18 +33,18 @@ imu_node:
     gyro_average_offset_z: 0.0
 
     # covariance
-    orientation_covariance: [0.0025, 0.0,      0.0,
+    orientation_covariance: [0.0025,   0.0,    0.0,
                              0.0,      0.0025, 0.0,
-                             0.0,      0.0,      0.0025]
+                             0.0,      0.0,    0.0025]
 
-    velocity_covariance: [0.002, 0.0,     0.0,
+    velocity_covariance: [0.002,   0.0,   0.0,
                           0.0,     0.002, 0.0,
-                          0.0,     0.0,     0.002]
+                          0.0,     0.0,   0.002]
 
-    acceleration_covariance: [0.04, 0.0,    0.0,
+    acceleration_covariance: [0.04,   0.0,  0.0,
                               0.0,    0.04, 0.0,
-                              0.0,    0.0,    0.04]
+                              0.0,    0.0,  0.04]
 
-    magnetic_field_covariance: [0.00, 0.0,    0.0,
-                                0.0,    0.00, 0.0,
-                                0.0,    0.0,    0.00]
+    magnetic_field_covariance: [0.0,    0.0, 0.0,
+                                0.0,    0.0, 0.0,
+                                0.0,    0.0, 0.0]

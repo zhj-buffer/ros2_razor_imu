@@ -76,11 +76,11 @@ class RazorImuDriver(Node):
         if publish_magnetometer:
             pub_mag = self.create_publisher(MagneticField, 'mag', 1)
             mag_msg = MagneticField()
-            mag_msg.magnetic_field_covariance = [0.00, 0, 0,
-                                                 0, 0.00, 0,
-                                                 0, 0, 0.00]
+            mag_msg.magnetic_field_covariance = [0.00, 0.0, 0.0,
+                                                 0.0, 0.00, 0.0,
+                                                 0.0, 0.0, 0.00]
             # self.declare_parameter('magnetic_field_covariance').value
-            mag_msg.header.frame_id = self.declare_parameter('frame_header', 'base_imu_link').value
+            mag_msg.header.frame_id = self.get_parameter_or('frame_header', 'base_imu_link').value
             # should a separate diagnostic for the Magnetometer be done?
 
         port = self.declare_parameter('port', '/dev/tty.usbmodem146401').value
@@ -314,9 +314,6 @@ class RazorImuDriver(Node):
 
         config_parsed = yaml.load(config)
         for key in self.calib_dict:
-            print(key)
-            print(config_parsed)
-            print(self.calib_dict)
             if config_parsed[key] != self.calib_dict[key]:
                 self.get_logger().warning(
                     f"The calibration value of [{key}] did not match. "
@@ -334,4 +331,4 @@ def main(args=None):
 
 
 if __name__ == '__main__':
-    main(sys.argv)
+    main()

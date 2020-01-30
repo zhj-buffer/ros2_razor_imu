@@ -23,12 +23,12 @@ def generate_launch_description():
     Launch file for visualizing Razor IMU data
     """
     display_3D_visualization_node = actions.Node(
-        package='razor_imu_9dof', node_executable='display_3D_visualization', output='screen')
+        package='razor_imu_9dof', node_executable='display_3D_visualization_node', output='screen')
 
     return LaunchDescription([display_3D_visualization_node])
 
 
-def main(argv):
+def main(args=None):
     ld = generate_launch_description()
 
     print('Starting introspection of launch description...')

@@ -34,7 +34,7 @@ def generate_launch_description():
     return LaunchDescription([imu_node])
 
 
-def main(argv):
+def main(args=None):
     ld = generate_launch_description()
 
     print('Starting introspection of launch description...')
