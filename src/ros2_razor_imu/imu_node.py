@@ -33,7 +33,7 @@ import serial
 import math
 import sys
 from time import sleep
-from nodes.lib.serial_commands import *
+from ros2_razor_imu.lib.serial_commands import *
 import yaml
 import time
 
@@ -314,7 +314,11 @@ class RazorImuDriver(Node):
 
         config_parsed = yaml.load(config)
         for key in self.calib_dict:
-            if config_parsed[key] != self.calib_dict[key]:
+            if key not in config_parsed:
+                self.get_logger().warning(
+                    f"The calibration value and key of [{key}] is missing from your config file")
+
+            elif config_parsed[key] != self.calib_dict[key]:
                 self.get_logger().warning(
                     f"The calibration value of [{key}] did not match. "
                     f"Expected: {str(self.calib_dict[key])} , received: {str(config_parsed[key])}")

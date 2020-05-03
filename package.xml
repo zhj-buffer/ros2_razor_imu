@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-    <name>razor_imu_9dof</name>
+    <name>ros2_razor_imu</name>
     <version>1.2.0</version>
     <description>
         razor_imu_9dof is a package that provides a ROS2 driver
@@ -29,6 +29,7 @@
     <depend>python-serial</depend>
     <depend>vpython</depend>
     <depend>wxPython</depend>
+    <depend>transforms3d</depend>
 
     <export>
         <build_type>ament_python</build_type>

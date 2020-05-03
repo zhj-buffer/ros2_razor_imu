@@ -45,9 +45,6 @@ class Display3DNode(Node):
     def __init__(self):
         super().__init__('display_3D_visualization_node')
 
-        # FIXME not working atm.
-        self.context.on_shutdown(self.shutdown_hook)
-
         sub = self.create_subscription(Imu, 'imu', self.process_imu_message, 1)
         sub  # prevent unused variable warning
 
@@ -209,9 +206,10 @@ def main(args=None):
     rclpy.init(args=args)
 
     node = Display3DNode()
+    # Might be affected by this bug https://github.com/ros2/rclpy/issues/532
+    rclpy.get_default_context().on_shutdown(node.shutdown_hook)
 
     rclpy.spin(node)
-
     node.destroy_node()
 
     rclpy.shutdown()
