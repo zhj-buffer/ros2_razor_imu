@@ -207,7 +207,7 @@ def main(args=None):
 
     node = Display3DNode()
     # Might be affected by this bug https://github.com/ros2/rclpy/issues/532
-    rclpy.get_default_context().on_shutdown(node.shutdown_hook)
+    #rclpy.get_default_context().on_shutdown(node.shutdown_hook)
 
     rclpy.spin(node)
     node.destroy_node()
