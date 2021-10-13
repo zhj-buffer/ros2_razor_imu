@@ -1,12 +1,12 @@
 STOP_DATASTREAM = '#o0'
 START_DATASTREAM = '#o1'
 
-GET_CALIBRATION_VALUES ='#p'
+GET_CALIBRATION_VALUES = '#p'
 
 SET_BINARY_FORMAT = '#ob'
 SET_TEXT_FORMAT = '#ot'
-SET_TEXT_EXTENDED_FORMAT_NO_MAG = '#ox' # Use this one in the ROS driver WITHOUT magnetometer
-SET_TEXT_EXTENDED_FORMAT_WITH_MAG = '#om' # Use this one in the ROS driver WITH magnetometer
+SET_TEXT_EXTENDED_FORMAT_NO_MAG = '#ox'  # Use this one in the ROS driver WITHOUT magnetometer
+SET_TEXT_EXTENDED_FORMAT_WITH_MAG = '#om'  # Use this one in the ROS driver WITH magnetometer
 SET_CALIBRATION_OUTPUT_MODE = '#oc'
 NEXT_SENSOR_CALIBRATION = '#on'
 

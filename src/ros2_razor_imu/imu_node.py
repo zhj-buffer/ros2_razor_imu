@@ -1,32 +1,3 @@
-#!/usr/bin/env python
-
-# Copyright (c) 2012, Tang Tiong Yew
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#
-#    * Redistributions of source code must retain the above copyright
-#      notice, this list of conditions and the following disclaimer.
-#    * Redistributions in binary form must reproduce the above copyright
-#      notice, this list of conditions and the following disclaimer in the
-#      documentation and/or other materials provided with the distribution.
-#    * Neither the name of the Willow Garage, Inc. nor the names of its
-#      contributors may be used to endorse or promote products derived from
-#       this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-
 import rclpy
 from rclpy.node import Node
 import serial
@@ -47,15 +18,27 @@ degrees2rad = math.pi / 180.0
 
 
 class RazorImuDriver(Node):
-    def __init__(self):
-        super().__init__('imu_node')
-        # We only care about the most recent measurement, i.e. queue_size=1
-        pub_imu = self.create_publisher(Imu, 'imu', 1)
 
-        diag_pub = self.create_publisher(DiagnosticArray, 'diagnostics', 1)
+    def __init__(self):
+
+        super().__init__('imu_node')
+
+        pub_imu = self.create_publisher(
+            msg_type=Imu,
+            topic='imu',
+            # we only care about the most recent measurement, i.e. queue_size=1
+            qos_profile=1,
+        )
+
+        diag_pub = self.create_publisher(
+            msg_type=DiagnosticArray,
+            topic='diagnostics',
+            qos_profile=1
+        )
         diag_pub_time = self.get_clock().now()
 
         imu_msg = Imu()
+
         # TODO arrays not supported as parameter type ROS2
         imu_msg.orientation_covariance = [0.0025, 0.0, 0.0,
                                           0.0, 0.0025, 0.0,
@@ -89,40 +72,40 @@ class RazorImuDriver(Node):
         self.calib_dict = {}
 
         # accelerometer
-        self.calib_dict["accel_x_min"] = self.declare_parameter('accel_x_min', -250.0).value
-        self.calib_dict["accel_x_max"] = self.declare_parameter('accel_x_max', 250.0).value
-        self.calib_dict["accel_y_min"] = self.declare_parameter('accel_y_min', -250.0).value
-        self.calib_dict["accel_y_max"] = self.declare_parameter('accel_y_max', 250.0).value
-        self.calib_dict["accel_z_min"] = self.declare_parameter('accel_z_min', -250.0).value
-        self.calib_dict["accel_z_max"] = self.declare_parameter('accel_z_max', 250.0).value
+        self.calib_dict['accel_x_min'] = self.declare_parameter('accel_x_min', -250.0).value
+        self.calib_dict['accel_x_max'] = self.declare_parameter('accel_x_max', 250.0).value
+        self.calib_dict['accel_y_min'] = self.declare_parameter('accel_y_min', -250.0).value
+        self.calib_dict['accel_y_max'] = self.declare_parameter('accel_y_max', 250.0).value
+        self.calib_dict['accel_z_min'] = self.declare_parameter('accel_z_min', -250.0).value
+        self.calib_dict['accel_z_max'] = self.declare_parameter('accel_z_max', 250.0).value
 
         # magnetometer
-        self.calib_dict["magn_x_min"] = self.declare_parameter('magn_x_min', -600.0).value
-        self.calib_dict["magn_x_max"] = self.declare_parameter('magn_x_max', 600.0).value
-        self.calib_dict["magn_y_min"] = self.declare_parameter('magn_y_min', -600.0).value
-        self.calib_dict["magn_y_max"] = self.declare_parameter('magn_y_max', 600.0).value
-        self.calib_dict["magn_z_min"] = self.declare_parameter('magn_z_min', -600.0).value
-        self.calib_dict["magn_z_max"] = self.declare_parameter('magn_z_max', 600.0).value
-        self.calib_dict["magn_use_extended"] = self.declare_parameter(
+        self.calib_dict['magn_x_min'] = self.declare_parameter('magn_x_min', -600.0).value
+        self.calib_dict['magn_x_max'] = self.declare_parameter('magn_x_max', 600.0).value
+        self.calib_dict['magn_y_min'] = self.declare_parameter('magn_y_min', -600.0).value
+        self.calib_dict['magn_y_max'] = self.declare_parameter('magn_y_max', 600.0).value
+        self.calib_dict['magn_z_min'] = self.declare_parameter('magn_z_min', -600.0).value
+        self.calib_dict['magn_z_max'] = self.declare_parameter('magn_z_max', 600.0).value
+        self.calib_dict['magn_use_extended'] = self.declare_parameter(
             'calibration_magn_use_extended', False).value
-        self.calib_dict["magn_ellipsoid_center"] = self.declare_parameter('magn_ellipsoid_center',
+        self.calib_dict['magn_ellipsoid_center'] = self.declare_parameter('magn_ellipsoid_center',
                                                                           [0, 0, 0]).value
         # TODO Array of arrays not supported as parameter type ROS2
-        self.calib_dict["magn_ellipsoid_transform"] = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+        self.calib_dict['magn_ellipsoid_transform'] = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
         # self.declare_parameter('magn_ellipsoid_transform',[[0, 0, 0], [0, 0, 0], [0, 0, 0]]).value
 
         # gyroscope
-        self.calib_dict["gyro_average_offset_x"] = self.declare_parameter('gyro_average_offset_x',
+        self.calib_dict['gyro_average_offset_x'] = self.declare_parameter('gyro_average_offset_x',
                                                                           0.0).value
-        self.calib_dict["gyro_average_offset_y"] = self.declare_parameter('gyro_average_offset_y',
+        self.calib_dict['gyro_average_offset_y'] = self.declare_parameter('gyro_average_offset_y',
                                                                           0.0).value
-        self.calib_dict["gyro_average_offset_z"] = self.declare_parameter('gyro_average_offset_z',
+        self.calib_dict['gyro_average_offset_z'] = self.declare_parameter('gyro_average_offset_z',
                                                                           0.0).value
 
         imu_yaw_calibration = self.declare_parameter('imu_yaw_calibration', 0.0).value
 
         # Check your COM port and baud rate
-        self.get_logger().info(f"Razor IMU -> Opening {port}...")
+        self.get_logger().info(f'Razor IMU -> Opening {port}...')
         connection_attempts = 5
         for connection_tries in range(0, connection_attempts + 1):
             try:
@@ -130,9 +113,9 @@ class RazorImuDriver(Node):
                 break
             except serial.serialutil.SerialException:
                 self.get_logger().error(
-                    f"Razor IMU not found at port {port}. "
-                    f"Did you specify the correct port in the launch file? "
-                    f"Trying {str(5 - connection_tries)} more times...")
+                    f'Razor IMU not found at port {port}. '
+                    f'Did you specify the correct port in the launch file? '
+                    f'Trying {str(5 - connection_tries)} more times...')
 
             if connection_tries == connection_attempts:
                 # exit
@@ -159,16 +142,19 @@ class RazorImuDriver(Node):
 
         self.send_command(ser, START_DATASTREAM)
 
-        self.get_logger().info("Razor IMU up and running")
+        self.get_logger().info('Razor IMU up and running')
 
+        # TODO: This forever blocking loop will prevent the node (executor) to spin
+        #       -> no callbacks will be ever run, the parameter server won't work, ...
+        #       -> This is not a way to go. Rethink.
         while rclpy.ok():
-            line = ser.readline().decode("utf-8")
+            # TODO: Why not use binary messages ( and avoid unnecessary int > string > int conversions
+            line = ser.readline().decode('utf-8')
             if not line.startswith(line_start):
-                self.get_logger().error(1,
-                                        "Did not find correct line start in the received IMU message")
+                self.get_logger().error('Did not find correct line start in the received IMU message')
                 continue
-            line = line.replace(line_start, "")  # Delete "#YPRAG=" or "#YPRAGM="
-            words = line.split(",")  # Fields split
+            line = line.replace(line_start, '')  # Delete "#YPRAG=" or "#YPRAGM="
+            words = line.split(',')  # Fields split
             if len(words) > 2:
                 # in AHRS firmware z axis points down, in ROS z axis points up (see REP 103)
                 yaw_deg = -float(words[0])
@@ -197,7 +183,7 @@ class RazorImuDriver(Node):
 
                 if publish_magnetometer:
                     # according to line 178 the units published of the mag are mGauss
-                    # REP103 specifys the units of magnetic field to be Teslas
+                    # REP103 specifies the units of magnetic field to be Tesla(s)
                     # The axis of the MPU magnetometer are X forward, Y right and Z down
                     #  when the chip is facing forward, in the sparkfun board, the chip is facing the left side
                     # but Sparkfun the firmware interchanges x and y and changes the sign of y
@@ -230,8 +216,8 @@ class RazorImuDriver(Node):
                 diag_msg.message = 'Received AHRS measurement'
 
                 for obj in [{'roll (deg)': str(roll * (180.0 / math.pi))},
-                             {'pitch (deg)': str(pitch * (180.0 / math.pi))},
-                             {'yaw (deg)': str(yaw * (180.0 / math.pi))}]:
+                            {'pitch (deg)': str(pitch * (180.0 / math.pi))},
+                            {'yaw (deg)': str(yaw * (180.0 / math.pi))}]:
                     kv = KeyValue()
                     for k, v in obj.items():
                         kv.key = k
@@ -248,87 +234,93 @@ class RazorImuDriver(Node):
             cmd = command + chr(13)
         else:
             cmd = command + str(value) + chr(13)
-        self.get_logger().info(f"Razor IMU -> Sending: {cmd}")
+        self.get_logger().info(f'Razor IMU -> Sending: {cmd}')
         expected_len = len(cmd)
         res = serial_instance.write(str.encode(cmd))
         if res != expected_len:
             self.get_logger().error(
-                f"Razor IMU -> Expected serial command len ({str(expected_len)}) "
-                f"didn't match amount of bytes written ({strres}) for command {command}")
+                f'Razor IMU -> Expected serial command len ({str(expected_len)}) '
+                f'didn\'t match amount of bytes written ({str(res)}) for command {command}')
         sleep(0.05)  # Don't spam serial with too many commands at once
 
     def write_and_check_config(self, serial_instance, calib_dict):
-        self.send_command(serial_instance, SET_CALIB_ACC_X_MIN, calib_dict["accel_x_min"])
-        self.send_command(serial_instance, SET_CALIB_ACC_X_MAX, calib_dict["accel_x_max"])
-        self.send_command(serial_instance, SET_CALIB_ACC_Y_MIN, calib_dict["accel_y_min"])
-        self.send_command(serial_instance, SET_CALIB_ACC_Y_MAX, calib_dict["accel_y_max"])
-        self.send_command(serial_instance, SET_CALIB_ACC_Z_MIN, calib_dict["accel_z_min"])
-        self.send_command(serial_instance, SET_CALIB_ACC_Z_MAX, calib_dict["accel_z_max"])
 
-        if not calib_dict["magn_use_extended"]:
-            self.send_command(serial_instance, SET_MAG_X_MIN, calib_dict["magn_x_min"])
-            self.send_command(serial_instance, SET_MAG_X_MAX, calib_dict["magn_x_max"])
-            self.send_command(serial_instance, SET_MAG_Y_MIN, calib_dict["magn_y_min"])
-            self.send_command(serial_instance, SET_MAG_Y_MAX, calib_dict["magn_y_max"])
-            self.send_command(serial_instance, SET_MAG_Z_MIN, calib_dict["magn_z_min"])
-            self.send_command(serial_instance, SET_MAG_Z_MAX, calib_dict["magn_z_max"])
+        self.get_logger().info('Razor IMU setting calibration values ...')
+
+        self.send_command(serial_instance, SET_CALIB_ACC_X_MIN, calib_dict['accel_x_min'])
+        self.send_command(serial_instance, SET_CALIB_ACC_X_MAX, calib_dict['accel_x_max'])
+        self.send_command(serial_instance, SET_CALIB_ACC_Y_MIN, calib_dict['accel_y_min'])
+        self.send_command(serial_instance, SET_CALIB_ACC_Y_MAX, calib_dict['accel_y_max'])
+        self.send_command(serial_instance, SET_CALIB_ACC_Z_MIN, calib_dict['accel_z_min'])
+        self.send_command(serial_instance, SET_CALIB_ACC_Z_MAX, calib_dict['accel_z_max'])
+
+        if not calib_dict['magn_use_extended']:
+            self.send_command(serial_instance, SET_MAG_X_MIN, calib_dict['magn_x_min'])
+            self.send_command(serial_instance, SET_MAG_X_MAX, calib_dict['magn_x_max'])
+            self.send_command(serial_instance, SET_MAG_Y_MIN, calib_dict['magn_y_min'])
+            self.send_command(serial_instance, SET_MAG_Y_MAX, calib_dict['magn_y_max'])
+            self.send_command(serial_instance, SET_MAG_Z_MIN, calib_dict['magn_z_min'])
+            self.send_command(serial_instance, SET_MAG_Z_MAX, calib_dict['magn_z_max'])
         else:
             self.send_command(serial_instance, SET_MAG_ELLIPSOID_CENTER_0,
-                              self.calib_dict["magn_ellipsoid_center"][0])
+                              self.calib_dict['magn_ellipsoid_center'][0])
             self.send_command(serial_instance, SET_MAG_ELLIPSOID_CENTER_1,
-                              self.calib_dict["magn_ellipsoid_center"][1])
+                              self.calib_dict['magn_ellipsoid_center'][1])
             self.send_command(serial_instance, SET_MAG_ELLIPSOID_CENTER_2,
-                              self.calib_dict["magn_ellipsoid_center"][2])
+                              self.calib_dict['magn_ellipsoid_center'][2])
             self.send_command(serial_instance, SET_MAG_ELLIPSOID_TRANSFORM_0_0,
-                              self.calib_dict["magn_ellipsoid_transform"][0][0])
+                              self.calib_dict['magn_ellipsoid_transform'][0][0])
             self.send_command(serial_instance, SET_MAG_ELLIPSOID_TRANSFORM_0_1,
-                              self.calib_dict["magn_ellipsoid_transform"][0][1])
+                              self.calib_dict['magn_ellipsoid_transform'][0][1])
             self.send_command(serial_instance, SET_MAG_ELLIPSOID_TRANSFORM_0_2,
-                              self.calib_dict["magn_ellipsoid_transform"][0][2])
+                              self.calib_dict['magn_ellipsoid_transform'][0][2])
             self.send_command(serial_instance, SET_MAG_ELLIPSOID_TRANSFORM_1_0,
-                              self.calib_dict["magn_ellipsoid_transform"][1][0])
+                              self.calib_dict['magn_ellipsoid_transform'][1][0])
             self.send_command(serial_instance, SET_MAG_ELLIPSOID_TRANSFORM_1_1,
-                              self.calib_dict["magn_ellipsoid_transform"][1][1])
+                              self.calib_dict['magn_ellipsoid_transform'][1][1])
             self.send_command(serial_instance, SET_MAG_ELLIPSOID_TRANSFORM_1_2,
-                              self.calib_dict["magn_ellipsoid_transform"][1][2])
+                              self.calib_dict['magn_ellipsoid_transform'][1][2])
             self.send_command(serial_instance, SET_MAG_ELLIPSOID_TRANSFORM_2_0,
-                              self.calib_dict["magn_ellipsoid_transform"][2][0])
+                              self.calib_dict['magn_ellipsoid_transform'][2][0])
             self.send_command(serial_instance, SET_MAG_ELLIPSOID_TRANSFORM_2_1,
-                              self.calib_dict["magn_ellipsoid_transform"][2][1])
+                              self.calib_dict['magn_ellipsoid_transform'][2][1])
             self.send_command(serial_instance, SET_MAG_ELLIPSOID_TRANSFORM_2_2,
-                              self.calib_dict["magn_ellipsoid_transform"][2][2])
+                              self.calib_dict['magn_ellipsoid_transform'][2][2])
 
         self.send_command(serial_instance, SET_GYRO_AVERAGE_OFFSET_X,
-                          self.calib_dict["gyro_average_offset_x"])
+                          self.calib_dict['gyro_average_offset_x'])
         self.send_command(serial_instance, SET_GYRO_AVERAGE_OFFSET_Y,
-                          self.calib_dict["gyro_average_offset_y"])
+                          self.calib_dict['gyro_average_offset_y'])
         self.send_command(serial_instance, SET_GYRO_AVERAGE_OFFSET_Z,
-                          self.calib_dict["gyro_average_offset_z"])
+                          self.calib_dict['gyro_average_offset_z'])
 
         self.send_command(serial_instance, GET_CALIBRATION_VALUES)
-        config = ""
+        config = ''
         for _ in range(0, 21):
             # Format each line received from serial into proper yaml with lowercase variable names
-            config += serial_instance.readline().decode("utf-8").lower().replace(":", ": ")
+            config += serial_instance.readline().decode('utf-8').lower().replace(':', ': ')
             # TODO: round the numbers, otherwise we will get false negatives in the check phase
 
-        config_parsed = yaml.load(config)
+        config_parsed = yaml.safe_load(config)
         for key in self.calib_dict:
             if key not in config_parsed:
                 self.get_logger().warning(
-                    f"The calibration value and key of [{key}] is missing from your config file")
+                    f'The calibration value and key of [{key}] is missing from your config file')
 
             elif config_parsed[key] != self.calib_dict[key]:
                 self.get_logger().warning(
-                    f"The calibration value of [{key}] did not match. "
-                    f"Expected: {str(self.calib_dict[key])} , received: {str(config_parsed[key])}")
+                    f'The calibration value of [{key}] did not match. '
+                    f'Expected: {str(self.calib_dict[key])} , received: {str(config_parsed[key])}')
 
 
 def main(args=None):
     rclpy.init(args=args)
+
     node = RazorImuDriver()
 
-    rclpy.spin(node)
+    # TODO: the code below will never run because RazorImuDriver's constructor never exits
+
+    rclpy.spin_once(node)
 
     node.destroy_node()
     rclpy.shutdown()
