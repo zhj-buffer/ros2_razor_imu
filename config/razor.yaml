@@ -1,6 +1,6 @@
 imu_node:
   ros__parameters:
-    port: /dev/tty.usbmodem141401
+    port: /dev/tty.usbmodem14201
     frame_header: "base_imu_link"
 
 
@@ -18,7 +18,7 @@ imu_node:
     magn_z_min: -600.0
     magn_z_max: 600.0
 
-    publish_magnetometer: true
+    publish_magnetometer: false
 
     # extended mag calibration
     calibration_magn_use_extended: false
