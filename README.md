@@ -1,5 +1,9 @@
 Official ROS Documentation
 --------------------------
+
+🚧 **WIP ([@pokusew](https://github.com/pokusew)): Improving code, compatibility with the latest ROS 2 versions,
+implementing missing functionalities, rethinking internal workings.**
+
 Converted to ROS2 from the package `razor_imu_9dof`.
 
 A much more extensive and standard ROS-style version of this documentation can be found on the ROS wiki at:
