@@ -36,7 +36,6 @@ Desktop.ini
 # in CLion as "Compilation Database Project"
 /compile_commands.json
 
-
 # correct PYTHONPATH for VSCode's pylint and other tools
 .env
 
@@ -45,7 +44,3 @@ __pycache__
 *~
 *.pyc
 *.swp
-
-# original ROS 1 f1tenth
-/ws/original/
-/original/
