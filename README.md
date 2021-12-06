@@ -16,6 +16,7 @@ Install and Configure ROS Package
 1) Download code and install: 
 
     ```
+	$ pip3 install serial vpython pyserial wxPython
     $ git clone https://github.com/klintan/ros2_razor_imu.git
     $ cd ..
     $ colcon build --symlink-install
